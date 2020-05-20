@@ -1,6 +1,20 @@
 Class {
 	#name : #JollyLib,
 	#superclass : #Object,
+	#classVars : [
+		'PRIMITIVE_FILE_STREAM_STDERR',
+		'PRIMITIVE_FILE_STREAM_STDIN',
+		'PRIMITIVE_FILE_STREAM_STDOUT',
+		'PRIMITIVE_ID_CLOSE_FILE',
+		'PRIMITIVE_ID_FAIL',
+		'PRIMITIVE_ID_GET_CHAR',
+		'PRIMITIVE_ID_NOPE',
+		'PRIMITIVE_ID_OPEN_FILE',
+		'PRIMITIVE_ID_PUT_CHAR',
+		'PRIMITIVE_ID_STOP_VM',
+		'PRIMITIVE_NOT_READY',
+		'PRIMITIVE_READY'
+	],
 	#category : #'Jolly-Libraries'
 }
 
@@ -14,6 +28,24 @@ JollyLib class >> generateOn: assembly [
 	^ self new
 		generateOn: assembly;
 		yourself
+]
+
+{ #category : #'class initialization' }
+JollyLib class >> initialize [
+	PRIMITIVE_ID_NOPE := 0.
+	PRIMITIVE_ID_FAIL := 1.
+	PRIMITIVE_ID_PUT_CHAR := 2.
+	PRIMITIVE_ID_GET_CHAR := 3.
+	PRIMITIVE_ID_STOP_VM := 4.
+	PRIMITIVE_ID_OPEN_FILE := 5.
+	PRIMITIVE_ID_CLOSE_FILE := 6.
+	
+	PRIMITIVE_NOT_READY := 0.
+	PRIMITIVE_READY := 1.
+
+	PRIMITIVE_FILE_STREAM_STDIN := 0.
+	PRIMITIVE_FILE_STREAM_STDOUT := 1.
+	PRIMITIVE_FILE_STREAM_STDERR := 2
 ]
 
 { #category : #including }
@@ -41,7 +73,7 @@ JollyLib >> generateGetCharFromStdinOn: assembly [
 		move: #D to: #A;
 		move: #E to: #B;
 		move: #F to: #C;
-		atAddressStoreData: 0; "stdin stream code."
+		atAddressStoreData: PRIMITIVE_FILE_STREAM_STDIN; "stdin stream code."
 		"Restore A,B,C"
 		move: #A to: #D;
 		move: #B to: #E;
@@ -74,10 +106,9 @@ JollyLib >> generateGetCharOn: assembly [
 		move: #D to: #PRIMITIVE_RESULT_HIGH;
 		move: #E to: #PRIMITIVE_RESULT_MIDDLE;
 		move: #F to: #PRIMITIVE_RESULT_LOW;
-		"3 = get_char primitive id"
-		move: 3 to: #PRIMITIVE_CALL_ID;
+		move: PRIMITIVE_ID_GET_CHAR to: #PRIMITIVE_CALL_ID;
 		"Trigger primitive."
-		move: 1 to: #PRIMITIVE_IS_READY;
+		move: PRIMITIVE_READY to: #PRIMITIVE_IS_READY;
 		return
 ]
 
@@ -115,7 +146,7 @@ JollyLib >> generatePrintStringOn: assembly [
 		cmp: #G with: Character null asciiValue;
 		jumpIfEqual: #print_finished;
 		"Prepare args of #put_char"
-		pushOnDataStack: 0; "Stdout filestream."
+		pushOnDataStack: PRIMITIVE_FILE_STREAM_STDOUT;
 		pushOnDataStack: #A;
 		pushOnDataStack: #B;
 		pushOnDataStack: #C;
@@ -146,9 +177,7 @@ JollyLib >> generatePutCharOn: assembly [
 	assembly label: #put_char;
 		jump: #_put_char_begin;
 		label: #_put_char_pointer;
-		data: #[0]; "1 byte for the character to put."
-		label: #_put_char_stream_id;
-		data: #[0]; "1 byte for the id of the filestream."
+		data: #[0 0]; "1 byte for the character to put,1 byte for the id of the filestream."
 		
 		label:  #_put_char_begin;
 		
@@ -184,9 +213,9 @@ JollyLib >> generatePutCharOn: assembly [
 		"Clear filestream id from the stack."
 		decrement: #SP;
 		"2 = put_char primitive id"
-		move: 2 to: #PRIMITIVE_CALL_ID;
+		move: PRIMITIVE_ID_PUT_CHAR to: #PRIMITIVE_CALL_ID;
 		"Trigger primitive."
-		move: 1 to: #PRIMITIVE_IS_READY;
+		move: PRIMITIVE_READY to: #PRIMITIVE_IS_READY;
 		return
 ]
 
@@ -195,7 +224,7 @@ JollyLib >> generateStopVMOn: assembly [
 	assembly
 		label: #stop_vm;
 		"4 = stop_vm"
-		move: 4 to: #PRIMITIVE_CALL_ID;
+		move: PRIMITIVE_ID_STOP_VM to: #PRIMITIVE_CALL_ID;
 		"Trigger primitive."
-		move: 1 to: #PRIMITIVE_IS_READY
+		move: PRIMITIVE_READY to: #PRIMITIVE_IS_READY
 ]
