@@ -10,19 +10,20 @@ JollyIndirectDataAccess >> generateSourceAccessFor: anAssembler withInstruction:
 	highByteAddressCopyInstruction := anAssemblerInstruction newInstruction.
 	middleByteAddressCopyInstruction := anAssemblerInstruction newInstruction.
 	lowByteAddressCopyInstruction := anAssemblerInstruction newInstruction.
+	
 	highByteAddressCopyInstruction
 		beAddedTo: anAssembler;
-		from: self address;
+		from: self address copy;
 		to: lastInstruction asReference fromAddressHighByte;
 		jump: middleByteAddressCopyInstruction asReference.
 	middleByteAddressCopyInstruction
 		beAddedTo: anAssembler;
-		from: self address + 1;
+		from: (self address + 1);
 		to: lastInstruction asReference fromAddressMiddleByte;
 		jump: lowByteAddressCopyInstruction asReference.
 	lowByteAddressCopyInstruction
 		beAddedTo: anAssembler;
-		from: self address + 2;
+		from: (self address + 2);
 		to: lastInstruction asReference fromAddressLowByte;
 		jump: BPNextInstructionReference new
 ]
@@ -35,7 +36,7 @@ JollyIndirectDataAccess >> generateTargetAccessFor: anAssembler withInstruction:
 	lowByteAddressCopyInstruction := anAssemblerInstruction newInstruction.
 	highByteAddressCopyInstruction
 		beAddedTo: anAssembler;
-		from: self address;
+		from: self address copy;
 		to: lastInstruction asReference toAddressHighByte;
 		jump: middleByteAddressCopyInstruction asReference.
 	middleByteAddressCopyInstruction

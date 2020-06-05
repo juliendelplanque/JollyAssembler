@@ -17,6 +17,26 @@ JollyAssembler >> assemble [
 	^ super assemble
 ]
 
+{ #category : #accessing }
+JollyAssembler >> data: aByteArray [
+	"Inject data in the bytecode.
+	"
+	BPDataZone new
+		byteArray: aByteArray;
+		generateFor: self
+]
+
+{ #category : #instructions }
+JollyAssembler >> jump: address [
+	"Let the instruction pointer do a unconditional jump to the defined address.
+
+	 JMP address
+	"
+	BPJump new
+		address: address;
+		generateFor: self
+]
+
 { #category : #'instructions-backup' }
 JollyAssembler >> loadCharInto: targetAddress fromHigh: highAddressByteAddress middle: middleAddressByteAddress low: lowAddressByteAddress [
 	"Loads the character pointed by the address formed by highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress
@@ -168,8 +188,8 @@ JollyAssembler >> moveCharFrom: fromAddress toIndirect: toAddress [
 	 consecutive bytes starting at toAddress.
 	"
 	JollyMove new
-		source: (fromAddress forAssembler: self) asDirectAccess;
-		target: (toAddress forAssembler: self) asIndirectAccess;
+		sourceDataAccess: (fromAddress forAssembler: self) asDirectAccess;
+		targetDataAccess: (toAddress forAssembler: self) asIndirectAccess;
 		generateFor: self
 ]
 
@@ -179,8 +199,8 @@ JollyAssembler >> moveCharFromIndirect: fromAddress to: toAddress [
 	 fromAddress to toAddress.
 	"
 	JollyMove new
-		source: (fromAddress forAssembler: self) asIndirectAccess;
-		target: (toAddress forAssembler: self) asDirectAccess;
+		sourceDataAccess: (fromAddress forAssembler: self) asIndirectAccess;
+		targetDataAccess: (toAddress forAssembler: self) asDirectAccess;
 		generateFor: self
 ]
 
@@ -191,8 +211,8 @@ JollyAssembler >> moveCharFromIndirect: fromAddress toIndirect: toAddress [
 	 toAddress.
 	"
 	JollyMove new
-		source: (fromAddress forAssembler: self) asIndirectAccess;
-		target: (toAddress forAssembler: self) asIndirectAccess;
+		sourceDataAccess: (fromAddress forAssembler: self) asIndirectAccess;
+		targetDataAccess: (toAddress forAssembler: self) asIndirectAccess;
 		generateFor: self
 ]
 
@@ -204,9 +224,9 @@ JollyAssembler >> moveWordFrom: fromAddress to: intoAddress [
 		toAddress, toAddress+1 and toAddress+2.
 	"
 	self
-		moveCharFrom: fromAddress to: intoAddress;
-		moveCharFrom: fromAddress + 1 to: intoAddress + 1;
-		moveCharFrom: fromAddress + 2 to: intoAddress + 2
+		moveCharFrom: (fromAddress forAssembler: self) to: (intoAddress forAssembler: self);
+		moveCharFrom: (fromAddress forAssembler: self) + 1 to: (intoAddress forAssembler: self) + 1;
+		moveCharFrom: (fromAddress forAssembler: self) + 2 to: (intoAddress forAssembler: self) + 2
 ]
 
 { #category : #instructions }

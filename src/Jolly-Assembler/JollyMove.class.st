@@ -12,6 +12,11 @@ Class {
 JollyMove >> generateFor: anAssembler [
 	| lastInstruction |
 	lastInstruction := self newInstruction.
+	
+	lastInstruction
+		from: 0 asBPAddress;
+		to: 0 asBPAddress.
+	
 	self sourceDataAccess
 		generateSourceAccessFor: anAssembler withInstruction: lastInstruction assemblerInstruction: self.
 		

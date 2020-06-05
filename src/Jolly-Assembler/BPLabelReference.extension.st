@@ -4,3 +4,8 @@ Extension { #name : #BPLabelReference }
 BPLabelReference >> asDirectAccess [
 	^ JollyDirectDataAccess address: self
 ]
+
+{ #category : #'*Jolly-Assembler' }
+BPLabelReference >> asIndirectAccess [
+	^ JollyIndirectDataAccess address: self
+]
