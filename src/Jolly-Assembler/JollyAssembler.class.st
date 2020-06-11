@@ -9,12 +9,32 @@ JollyAssembler class >> defaultMemoryLayout [
 	^ JollyMemoryLayoutV1 new
 ]
 
+{ #category : #instructions }
+JollyAssembler >> add: address1 to: address2 into: resultAddress [
+	self lookupBank: (self reservedMemoryZoneNamed: #ADD_PAGE) address from: address1 from: address2 to: resultAddress
+]
+
 { #category : #assembling }
 JollyAssembler >> assemble [
 	self flag: #TODO. "Manage this more cleanly."
 	self instructions last jump class = BPNextInstructionReference
 		ifTrue: [ self instructions last jump: 0 asBPAddress ].
 	^ super assemble
+]
+
+{ #category : #instructions }
+JollyAssembler >> carryFlag: address1 with: address2 into: resultAddress [
+	self lookupBank: (self reservedMemoryZoneNamed: #ADD_CARRY_FLAG_PAGE) address from: address1 from: address2 to: resultAddress
+]
+
+{ #category : #instructions }
+JollyAssembler >> cmp: address1 with: address2 [
+	self cmp: address1 with: address2 into: address1
+]
+
+{ #category : #instructions }
+JollyAssembler >> cmp: address1 with: address2 into: resultAddress [
+	self lookupBank: (self reservedMemoryZoneNamed: #CMP_PAGE) address from: address1 from: address2 to: resultAddress
 ]
 
 { #category : #accessing }
@@ -24,6 +44,89 @@ JollyAssembler >> data: aByteArray [
 	BPDataZone new
 		byteArray: aByteArray;
 		generateFor: self
+]
+
+{ #category : #instructions }
+JollyAssembler >> decrement: byteToIncrementAddress [
+	self decrement: byteToIncrementAddress into: byteToIncrementAddress
+]
+
+{ #category : #instructions }
+JollyAssembler >> decrement: byteToIncrementAddress into: resultAddress [
+	"We rely on the overflow of the byte addition to decrement it."
+	self add: byteToIncrementAddress to: 255 into: resultAddress
+]
+
+{ #category : #instructions }
+JollyAssembler >> decrementWord [
+	"Decrement the word formed by content of registers A (high-byte), B (middle byte), C (low byte)."
+	
+	| decrementAddressFinishedLabel |
+	decrementAddressFinishedLabel := ('decrementWordFinished-' , UUIDGenerator next asString) asSymbol.
+	
+	self
+		decrement: #C;
+		cmp: #C with: 255 into: #ZERO;
+		jumpIfNotEqual: decrementAddressFinishedLabel;
+		decrement: #B;
+		cmp: #B with: 255 into: #ZERO;
+		jumpIfNotEqual: decrementAddressFinishedLabel;
+		decrement: #A;
+		label: decrementAddressFinishedLabel;
+		nop "Ensure it works even if this is the last instruction of program."
+]
+
+{ #category : #instructions }
+JollyAssembler >> decrementWord: address1 into: address2 [
+	"Requires registers A,B,C to be consecutive in memory."
+	self
+		moveWordFrom: address1 to: #A;
+		decrementWord;
+		moveWordFrom: #A to: address2
+]
+
+{ #category : #instructions }
+JollyAssembler >> increment: byteToIncrementAddress [
+	self increment: byteToIncrementAddress into: byteToIncrementAddress
+]
+
+{ #category : #instructions }
+JollyAssembler >> increment: byteToIncrementAddress into: resultAddress [
+	self add: byteToIncrementAddress to: 1 into: resultAddress
+]
+
+{ #category : #instructions }
+JollyAssembler >> incrementWord [
+	"Increment the word formed by content of registers A (high-byte), B (middle byte), C (low byte)."
+	
+	| incrementAddressFinishedLabel |
+	incrementAddressFinishedLabel := ('incrementWordFinished-' , UUIDGenerator next asString) asSymbol.
+	
+	self
+		increment: #C;
+		cmp: #C with: 0 into: #ZERO;
+		jumpIfNotEqual: incrementAddressFinishedLabel;
+		increment: #B;
+		cmp: #B with: 0 into: #ZERO;
+		jumpIfNotEqual: incrementAddressFinishedLabel;
+		increment: #A;
+		label: incrementAddressFinishedLabel;
+		nop "Ensure it works even if this is the last instruction of program."
+]
+
+{ #category : #instructions }
+JollyAssembler >> incrementWord: address [
+	"Requires registers A,B,C to be consecutive in memory."
+	self incrementWord: address into: address
+]
+
+{ #category : #instructions }
+JollyAssembler >> incrementWord: address1 into: address2 [
+	"Requires registers A,B,C to be consecutive in memory."
+	self
+		moveWordFrom: address1 to: #A;
+		incrementWord;
+		moveWordFrom: #A to: address2
 ]
 
 { #category : #instructions }
@@ -37,140 +140,41 @@ JollyAssembler >> jump: address [
 		generateFor: self
 ]
 
-{ #category : #'instructions-backup' }
-JollyAssembler >> loadCharInto: targetAddress fromHigh: highAddressByteAddress middle: middleAddressByteAddress low: lowAddressByteAddress [
-	"Loads the character pointed by the address formed by highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress
-	 into byte at targetAddress.
-	
-	 For example, if
-		targetAddress            = 16r000042
-		highAddressByteAddress   = 16r000001
-		middleAddressByteAddress = 16r000002
-		lowAddressByteAddress    = 16r000003
-	 Considering that memory is in following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 10
-		...
-		memory[16r000143] = 11
-		...
-	
-	 The bytecodes generated copy the character at address 16r000143 into byte at address 16r000042 leading memory to the following
-	 state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 11
-		...
-		memory[16r000143] = 11
-		...
+{ #category : #instructions }
+JollyAssembler >> jumpIfEqual: address [
+	"Let the instruction pointer do a jump to the defined address if ZERO flag is TRUE.
 	"
-	self flag: #TODO; halt
+	BPJumpIfEqual new
+		address: address;
+		generateFor: self
 ]
 
-{ #category : #'instructions-backup' }
-JollyAssembler >> loadWordInto: targetAddress fromHigh: highAddressByteAddress middle: middleAddressByteAddress low: lowAddressByteAddress [
-	"Loads the word (3 bytes) pointed by the address formed by (highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress),
-	 (highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress) + 1 and (highAddressByteAddress, middleAddressByteAddress
-	 and lowAddressByteAddress) + 2 into the 3 bytes at targetAddress, targetAddress+1 and targetAddress+2.
-	
-	 For example, if
-		targetAddress            = 16r424344
-		highAddressByteAddress   = 16r000001
-		middleAddressByteAddress = 16r000002
-		lowAddressByteAddress    = 16r000003
-	 Considering that memory is in following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000143] = 11
-		memory[16r000144] = 11
-		memory[16r000145] = 11
-		...
-		memory[16r424344] = 10
-		memory[16r424345] = 10
-		memory[16r424346] = 10
-		...
-	
-	 The bytecodes generated
-		- copy the character at address 16r000143 into byte at address 16r000042
-		- copy the character at address 16r000144 into byte at address 16r000043
-		- copy the character at address 16r000145 into byte at address 16r000044
-	
-	 leading memory to the following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000143] = 11
-		memory[16r000144] = 11
-		memory[16r000145] = 11
-		...
-		memory[16r424344] = 11
-		memory[16r424345] = 11
-		memory[16r424346] = 11
-		...
+{ #category : #instructions }
+JollyAssembler >> jumpIfNotEqual: address [
+	"Let the instruction pointer do a jump to the defined address if ZERO flag is FALSE.
 	"
-	self flag: #TODO; halt
+	BPJumpIfNotEqual new
+		address: address;
+		generateFor: self
 ]
 
-{ #category : #'instructions-backup' }
-JollyAssembler >> loadWordIntoHigh: highTargetAddress middle: middleTargetAddress low: lowTargetAddress fromHigh: highAddressByteAddress middle: middleAddressByteAddress low: lowAddressByteAddress [
-	"Loads the word (3 bytes) pointed by the address formed by (highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress),
-	 (highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress) + 1 and (highAddressByteAddress, middleAddressByteAddress
-	 and lowAddressByteAddress) + 2 into the 3 bytes at highTargetAddress, middleTargetAddress and lowTargetAddress.
-	
-	 For example, if
-		highTargetAddress        = 16r000042
-		middleTargetAddress      = 16r000043
-		lowTargetAddress         = 16r000044
-		highAddressByteAddress   = 16r000001
-		middleAddressByteAddress = 16r000002
-		lowAddressByteAddress    = 16r000003
-	 Considering that memory is in following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 10
-		memory[16r000043] = 10
-		memory[16r000044] = 10
-		...
-		memory[16r000143] = 11
-		memory[16r000144] = 11
-		memory[16r000145] = 11
-		...
-	
-	 The bytecodes generated
-		- copy the character at address 16r000143 into byte at address 16r000042
-		- copy the character at address 16r000144 into byte at address 16r000043
-		- copy the character at address 16r000145 into byte at address 16r000044
-	
-	 leading memory to the following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 11
-		memory[16r000043] = 11
-		memory[16r000044] = 11
-		...
-		memory[16r000143] = 11
-		memory[16r000144] = 11
-		memory[16r000145] = 11
-		...
-	"
-	self flag: #TODO; halt
+{ #category : #instructions }
+JollyAssembler >> lookupBank: bankStartAddress from: fromAddress1 from: fromAddress2 to: toAddress [
+	JollyLookupBank new
+		bankStartAddress: (bankStartAddress forAssembler: self);
+		firstByteToLookupAddress: (fromAddress1 forAssembler: self);
+		secondByteToLookupAddress: (fromAddress2 forAssembler: self);
+		resultAddress: (toAddress forAssembler: self);
+		generateFor: self
+]
+
+{ #category : #instructions }
+JollyAssembler >> lookupPage: pageStartAddress from: fromAddress to: toAddress [
+	JollyLookupPage new
+		pageStartAddress: (pageStartAddress forAssembler: self);
+		byteToLookupAddress: (fromAddress forAssembler: self);
+		resultAddress: (toAddress forAssembler: self);
+		generateFor: self
 ]
 
 { #category : #instructions }
@@ -244,90 +248,10 @@ JollyAssembler >> moveWordFromIndirect: fromAddress toIndirect: intoAddress [
 	self flag: #TODO; halt
 ]
 
-{ #category : #'instructions-backup' }
-JollyAssembler >> storeCharAt: sourceAddress intoHigh: highAddressByteAddress middle: middleAddressByteAddress low: lowAddressByteAddress [
-	"Stores the character stored at sourceAddress into the byte pointed by the address formed by highAddressByteAddress,
-	middleAddressByteAddress and lowAddressByteAddress.
-	
-	 For example, if
-		sourceAddress            = 16r000042
-		highAddressByteAddress   = 16r000001
-		middleAddressByteAddress = 16r000002
-		lowAddressByteAddress    = 16r000003
-	 Considering that memory is in following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 10
-		...
-		memory[16r000143] = 11
-		...
-	
-	 The bytecodes generated copy the character at address16r000042 into byte at address 16r000143 leading memory to the following
-	 state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 10
-		...
-		memory[16r000143] = 10
-		...
+{ #category : #instructions }
+JollyAssembler >> nop [
+	"No-op instruction, does nothing.
 	"
-	self flag: #TODO; halt
-]
-
-{ #category : #'instructions-backup' }
-JollyAssembler >> storeWordAtHigh: highSourceAddress middle: middleSourceAddress low: lowSourceAddress intoHigh: highAddressByteAddress middle: middleAddressByteAddress low: lowAddressByteAddress [
-	"Stores the word (3 bytes) pointed by the 3 bytes at highTargetAddress, middleTargetAddress and lowTargetAddress into the bytes
-	 pointed by the addresss formed by (highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress),
-	 (highAddressByteAddress, middleAddressByteAddress and lowAddressByteAddress) + 1 and (highAddressByteAddress, middleAddressByteAddress
-	 and lowAddressByteAddress) + 2.
-	
-	 For example, if
-		highTargetAddress        = 16r000042
-		middleTargetAddress      = 16r000043
-		lowTargetAddress         = 16r000044
-		highAddressByteAddress   = 16r000001
-		middleAddressByteAddress = 16r000002
-		lowAddressByteAddress    = 16r000003
-	 Considering that memory is in following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 10
-		memory[16r000043] = 10
-		memory[16r000044] = 10
-		...
-		memory[16r000143] = 11
-		memory[16r000144] = 11
-		memory[16r000145] = 11
-		...
-	
-	 The bytecodes generated
-		- copy the character at address 16r000042 into byte at address 16r000143
-		- copy the character at address 16r000043 into byte at address 16r000144
-		- copy the character at address 16r000044 into byte at address 16r000145
-	
-	 leading memory to the following state:
-		...
-		memory[16r000001] = 0
-		memory[16r000002] = 1
-		memory[16r000003] = 43
-		...
-		memory[16r000042] = 11
-		memory[16r000043] = 11
-		memory[16r000044] = 11
-		...
-		memory[16r000143] = 10
-		memory[16r000144] = 10
-		memory[16r000145] = 10
-		...
-	"
-	self flag: #TODO; halt
+	BPNop new
+		generateFor: self
 ]

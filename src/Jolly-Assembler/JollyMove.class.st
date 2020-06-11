@@ -1,6 +1,6 @@
 Class {
 	#name : #JollyMove,
-	#superclass : #BPAssemblerInstruction,
+	#superclass : #JollyAssemblerInstruction,
 	#instVars : [
 		'sourceDataAccess',
 		'targetDataAccess'
@@ -36,11 +36,6 @@ JollyMove >> sourceDataAccess [
 { #category : #accessing }
 JollyMove >> sourceDataAccess: anObject [
 	sourceDataAccess := anObject
-]
-
-{ #category : #accessing }
-JollyMove >> tag [
-	^ self className allButFirst: 'Jolly' size
 ]
 
 { #category : #accessing }
