@@ -77,6 +77,11 @@ JollyAssembler >> decrementWord [
 ]
 
 { #category : #instructions }
+JollyAssembler >> decrementWord: address [
+	self decrementWord: address into: address
+]
+
+{ #category : #instructions }
 JollyAssembler >> decrementWord: address1 into: address2 [
 	"Requires registers A,B,C to be consecutive in memory."
 	self
@@ -240,7 +245,13 @@ JollyAssembler >> moveWordFrom: fromAddress toIndirect: intoAddress [
 
 { #category : #instructions }
 JollyAssembler >> moveWordFromIndirect: fromAddress to: intoAddress [
-	self flag: #TODO; halt
+	self moveCharFromIndirect: (fromAddress forAssembler: self) to: (intoAddress forAssembler: self).
+	self incrementWord: (fromAddress forAssembler: self).
+	self moveCharFromIndirect: (fromAddress forAssembler: self) to: (intoAddress forAssembler: self) + 1.
+	self incrementWord: (fromAddress forAssembler: self).
+	self moveCharFromIndirect: (fromAddress forAssembler: self) to: (intoAddress forAssembler: self) + 2.
+	self decrementWord: (fromAddress forAssembler: self).
+	self decrementWord: (fromAddress forAssembler: self).
 ]
 
 { #category : #instructions }
