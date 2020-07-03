@@ -1,16 +1,16 @@
 Class {
-	#name : #JollyForthLayout,
+	#name : #JollyEForthLayout,
 	#superclass : #BPMemoryLayout,
-	#category : #'Jolly-Assembler'
+	#category : #'Jolly-EForth'
 }
 
 { #category : #accessing }
-JollyForthLayout >> endAddress [
+JollyEForthLayout >> endAddress [
 	^ 16rFFFFFF asBPAddress
 ]
 
 { #category : #initialization }
-JollyForthLayout >> initialize [
+JollyEForthLayout >> initialize [
 	| available_memory_start |
 	super initialize.
 	available_memory_start := 16r10.
