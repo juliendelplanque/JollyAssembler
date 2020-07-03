@@ -648,7 +648,6 @@ JollyAssemblerTest >> testMoveWordFromIndirectTo [
 		moveCharFrom: 1 to: #D;
 		moveCharFrom: 2 to: #E;
 		moveCharFrom: 3 to: #F;
-		label: #moveWordFromIndirect;
 		moveWordFromIndirect: #addressForFrom to: #addressForTo.
 	
 	assembledCode := assembly assemble.
@@ -694,4 +693,38 @@ JollyAssemblerTest >> testMoveWordFromTo [
 	self assert: ((assembledCode labelNamed: #targetForWordMove) address access: memory) equals: 1.
 	self assert: ((assembledCode labelNamed: #targetForWordMove) address + 1 access: memory) equals: 2.
 	self assert: ((assembledCode labelNamed: #targetForWordMove) address + 2 access: memory) equals: 3.
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testMoveWordFromToIndirect [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForFrom;
+		data: #[1 2 3];
+		label: #addressForTo;
+		data: (assembly memoryLayout registerNamed: #D) address asByteArray;
+		label: #endData;
+		moveCharFrom: 0 to: #D;
+		moveCharFrom: 0 to: #E;
+		moveCharFrom: 0 to: #F;
+		label: #moveWordFromIndirect;
+		moveWordFrom: #addressForFrom toIndirect: #addressForTo.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	200 timesRepeat: [ vm executeInnerLoop ].
+
+	self assert: ((assembly registerNamed: #D) valueIn: memory) equals: 1.
+	self assert: ((assembly registerNamed: #E) valueIn: memory) equals: 2.
+	self assert: ((assembly registerNamed: #F) valueIn: memory) equals: 3.
+	self assert: ((assembledCode labelNamed: #addressForFrom) address accessInteger: memory) equals: 16r010203.
+	self assert: ((assembledCode labelNamed: #addressForTo) address accessInteger: memory) equals: (assembly memoryLayout registerNamed: #D) address memoryAddress..
 ]

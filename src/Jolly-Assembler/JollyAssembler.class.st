@@ -240,7 +240,13 @@ JollyAssembler >> moveWordFrom: fromAddress to: intoAddress [
 
 { #category : #instructions }
 JollyAssembler >> moveWordFrom: fromAddress toIndirect: intoAddress [
-	self flag: #TODO; halt
+	self moveCharFrom: (fromAddress forAssembler: self) toIndirect: (intoAddress forAssembler: self).
+	self incrementWord: (intoAddress forAssembler: self).
+	self moveCharFrom: (fromAddress forAssembler: self) + 1 toIndirect: (intoAddress forAssembler: self).
+	self incrementWord: (intoAddress forAssembler: self).
+	self moveCharFrom: (fromAddress forAssembler: self) + 2 toIndirect: (intoAddress forAssembler: self).
+	self decrementWord: (intoAddress forAssembler: self).
+	self decrementWord: (intoAddress forAssembler: self).
 ]
 
 { #category : #instructions }
