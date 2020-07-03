@@ -664,6 +664,39 @@ JollyAssemblerTest >> testMoveWordFromIndirectTo [
 ]
 
 { #category : #test }
+JollyAssemblerTest >> testMoveWordFromIndirectToIndirect [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForFrom;
+		data: #[16r42 0 0];
+		label: #addressForTo;
+		data: #[16r43 0 0];
+		label: #endData;
+		moveCharFrom: 1 to: 16r420000 asBPAddress;
+		moveCharFrom: 2 to: 16r420001 asBPAddress;
+		moveCharFrom: 3 to: 16r420002 asBPAddress;
+		moveWordFromIndirect: #addressForFrom toIndirect: #addressForTo.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	200 timesRepeat: [ vm executeInnerLoop ].
+
+	self assert: ((assembledCode labelNamed: #addressForFrom) address accessInteger: memory) equals: 16r420000.
+	self assert: ((assembledCode labelNamed: #addressForTo) address accessInteger: memory) equals: 16r430000.
+	self assert: (16r420000 asBPAddress access: memory) equals: 1.
+	self assert: (16r420001 asBPAddress access: memory) equals: 2.
+	self assert: (16r420002 asBPAddress access: memory) equals: 3.
+]
+
+{ #category : #test }
 JollyAssemblerTest >> testMoveWordFromTo [
 	| assembly vm memory assembledCode |
 	assembly := JollyAssembler new.
