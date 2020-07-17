@@ -166,6 +166,17 @@ JollyAssembler >> jumpIfNotEqual: address [
 ]
 
 { #category : #instructions }
+JollyAssembler >> jumpIndirect: address [
+	"Let the instruction pointer do a unconditional jump to the defined address.
+
+	 JMP address
+	"
+	BPJumpIndirect new
+		address: address;
+		generateFor: self
+]
+
+{ #category : #instructions }
 JollyAssembler >> lookupBank: bankStartAddress from: fromAddress1 from: fromAddress2 to: toAddress [
 	JollyLookupBank new
 		bankStartAddress: (bankStartAddress forAssembler: self);

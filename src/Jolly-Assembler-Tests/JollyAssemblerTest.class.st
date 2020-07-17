@@ -458,6 +458,28 @@ JollyAssemblerTest >> testIncrementWordInto2 [
 ]
 
 { #category : #test }
+JollyAssemblerTest >> testJumpIndirect [
+	| assembly vm memory |
+	assembly := JollyAssembler new.
+	
+	assembly
+		label: #toJump;
+		data: #[16r42 16r42 16r42];
+		label: #_start;
+		jumpIndirect: #toJump.
+	
+	memory := assembly assemble serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	4 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: vm programCounter equals: 16r424242
+]
+
+{ #category : #test }
 JollyAssemblerTest >> testLookupBankFromFromTo [
 	| assembly vm memory |
 	assembly := JollyAssembler new.
