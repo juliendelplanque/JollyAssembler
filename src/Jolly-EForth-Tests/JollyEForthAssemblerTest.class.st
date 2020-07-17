@@ -70,6 +70,54 @@ JollyEForthAssemblerTest >> testCodeDefinitionHeaderWithLexiconNameLabel2 [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineDoList [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineDoList;
+		jump: #doLIST.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	(assembly addressOfMemoryZone: #IP)
+		storeAddress: 16r424242 asBPAddress in: memory.
+		
+	(assembly addressOfMemoryZone: #WP)
+		storeAddress: 16r524242 asBPAddress in: memory.
+		
+	16r524245 asBPAddress
+		storeAddress: 16r534242 asBPAddress in: memory.
+	
+	16r534242 asBPAddress
+		storeAddress: 16r544242 asBPAddress in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm executeInnerLoopUntilReachAddress: 16r534242 orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #RP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #RETURN_STACK) memoryAddress - 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #RETURN_STACK) - 3 accessInteger: memory)
+		equals: 16r424242.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #WP) accessInteger: memory)
+		equals: 16r534242.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #IP) accessInteger: memory)
+		equals: 16r524248.
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineExit [
 	| assembly memory assembledCode vm count |
 	assembly := JollyEForthAssembler new.

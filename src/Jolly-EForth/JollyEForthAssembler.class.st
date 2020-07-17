@@ -69,15 +69,18 @@ JollyEForthAssembler >> defineDoList [
 	"
 	
 	self label: #doLIST.
-	"Push IP on return stack (that grows upward)."
+	"Push IP on return stack."
 	self allocateReturnStack.
-	self moveWordFrom: #IP toIndirect: #RP.
-
-	"Pop address from data stack and store it in #IP register (datastack grows upward)."
-	self moveWordFromIndirect: #SP to: #IP.
-	self decrementWord: #SP.
-	self decrementWord: #SP.
-	self decrementWord: #SP.
+	self
+		moveWordFrom: (self addressOfMemoryZone: #IP)
+		toIndirect: (self addressOfMemoryZone: #RP).
+	
+	self incrementWord: (self addressOfMemoryZone: #WP).
+	self incrementWord: (self addressOfMemoryZone: #WP).
+	self incrementWord: (self addressOfMemoryZone: #WP).
+	
+	self moveWordFrom: (self addressOfMemoryZone: #WP) to: (self addressOfMemoryZone: #IP).
+	
 	self next.
 ]
 
@@ -148,7 +151,7 @@ JollyEForthAssembler >> next [
 	
 		W = *IP;
 		IP = IP + CELL_SIZE;
-		JUMP *W;
+		JUMP W;
 	"
 	
 	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #WP).
