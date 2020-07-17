@@ -51,3 +51,13 @@ JollyEForthLayout >> initialize [
 		BPAddCarryFlagBankBuilder reservedMemoryZoneStartingAt: 16r50000.
 		BPReservedMemoryZone name: #DICTIONARY startAddress: 16r090000 size: 16r100000 }
 ]
+
+{ #category : #'initialize memory' }
+JollyEForthLayout >> initializeMemory: memory [
+	super initializeMemory: memory.
+	(self reservedMemoryZoneNamed: #SP) address
+		storeInteger: (self reservedMemoryZoneNamed: #DATA_STACK) address memoryAddress in: memory.
+		
+	(self reservedMemoryZoneNamed: #RP) address
+		storeInteger: (self reservedMemoryZoneNamed: #RETURN_STACK) address memoryAddress in: memory.
+]

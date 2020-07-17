@@ -13,7 +13,7 @@ Class {
 
 { #category : #running }
 JollyVirtualMachine >> executeInnerLoop [
-	Transcript
+	"Transcript
 		show: programCounter hex;
 		show: ' - ';
 		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter) hex;
@@ -21,7 +21,7 @@ JollyVirtualMachine >> executeInnerLoop [
 		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 3) hex;
 		show: ',';
 		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 6) hex;
-		cr.
+		cr."
 	self
 		memoryAt: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 3)
 		put: (self memoryAt: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter)).

@@ -14,6 +14,14 @@ JollyEForthAssembler >> addressOfMemoryZone: aSymbol [
 ]
 
 { #category : #macros }
+JollyEForthAssembler >> allocateReturnStack [
+	"Return stack grows downward, so decrement stack pointer to deallocate it."
+	self decrementWord: (self addressOfMemoryZone: #RP).
+	self decrementWord: (self addressOfMemoryZone: #RP).
+	self decrementWord: (self addressOfMemoryZone: #RP).
+]
+
+{ #category : #macros }
 JollyEForthAssembler >> codeDefinitionHeaderWithLexicon: lexiconInteger name: string label: assemblyLabel [
 	" Compiles a code definition header.
 	"
@@ -22,7 +30,8 @@ JollyEForthAssembler >> codeDefinitionHeaderWithLexicon: lexiconInteger name: st
 		data: previousWordAddress;
 		data: {lexiconInteger} asByteArray;
 		data: {string size} asByteArray;
-		data: string encodeAsASCII.
+		data: string encodeAsASCII;
+		label: (assemblyLabel , '-xt') asSymbol.
 				
 	previousWordAddress := assemblyLabel
 ]
@@ -30,6 +39,14 @@ JollyEForthAssembler >> codeDefinitionHeaderWithLexicon: lexiconInteger name: st
 { #category : #accessing }
 JollyEForthAssembler >> currentGenerationAddress [
 	^ currentGenerationAddress ifNil: [ currentGenerationAddress := (self memoryLayout reservedMemoryZoneNamed: #DICTIONARY) startAddress ]
+]
+
+{ #category : #macros }
+JollyEForthAssembler >> deallocateReturnStack [
+	"Return stack grows downward, so increment stack pointer to deallocate it."
+	self incrementWord: (self addressOfMemoryZone: #RP).
+	self incrementWord: (self addressOfMemoryZone: #RP).
+	self incrementWord: (self addressOfMemoryZone: #RP).
 ]
 
 { #category : #'inner interpreter' }
@@ -52,11 +69,10 @@ JollyEForthAssembler >> defineDoList [
 	"
 	
 	self label: #doLIST.
-	"Push IP on return stack (that grows downward)."
+	"Push IP on return stack (that grows upward)."
+	self allocateReturnStack.
 	self moveWordFrom: #IP toIndirect: #RP.
-	self decrementWord: #RP.
-	self decrementWord: #RP.
-	self decrementWord: #RP.
+
 	"Pop address from data stack and store it in #IP register (datastack grows upward)."
 	self moveWordFromIndirect: #SP to: #IP.
 	self decrementWord: #SP.
@@ -108,9 +124,7 @@ JollyEForthAssembler >> defineExit [
 	
 	"Pop address from return stack."
 	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #IP).
-	self incrementWord: (self addressOfMemoryZone: #RP).
-	self incrementWord: (self addressOfMemoryZone: #RP).
-	self incrementWord: (self addressOfMemoryZone: #RP).
+	self deallocateReturnStack.
 	self next
 ]
 
