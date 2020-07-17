@@ -8,6 +8,11 @@ Class {
 	#category : #'Jolly-EForth'
 }
 
+{ #category : #accessing }
+JollyEForthAssembler >> addressOfMemoryZone: aSymbol [
+	^ (self memoryLayout reservedMemoryZoneNamed: aSymbol) address
+]
+
 { #category : #macros }
 JollyEForthAssembler >> codeDefinitionHeaderWithLexicon: lexiconInteger name: string label: assemblyLabel [
 	" Compiles a code definition header.
@@ -61,6 +66,32 @@ JollyEForthAssembler >> defineDoList [
 ]
 
 { #category : #'inner interpreter' }
+JollyEForthAssembler >> defineDoLit [
+	self codeDefinitionHeaderWithLexicon: 0 name: 'DOLIT' label: #doLitWord.
+	self moveCharFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #X).
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	
+	"Pushes value in #X on the data stack."
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self next
+]
+
+{ #category : #'inner interpreter' }
+JollyEForthAssembler >> defineExecute [
+	self codeDefinitionHeaderWithLexicon: 0 name: 'EXECUTE' label: #executeWord.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self jump: (self addressOfMemoryZone: #X)
+]
+
+{ #category : #'inner interpreter' }
 JollyEForthAssembler >> defineExit [
 	"EXIT is a code word which undoes what doLIST accomplished.
 	 EXIT pops the top item on the return stack into the IP register.
@@ -73,11 +104,13 @@ JollyEForthAssembler >> defineExit [
 	$NEXT
 	"
 	
-	self label: #exit.
-	self moveWordFromIndirect: #RP to: #IP.
-	self incrementWord: #RP.
-	self incrementWord: #RP.
-	self incrementWord: #RP.
+	self codeDefinitionHeaderWithLexicon: 0 name: 'EXIT' label: #exitWord.
+	
+	"Pop address from return stack."
+	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #RP).
+	self incrementWord: (self addressOfMemoryZone: #RP).
+	self incrementWord: (self addressOfMemoryZone: #RP).
 	self next
 ]
 
@@ -88,7 +121,7 @@ JollyEForthAssembler >> initialize [
 	previousWordAddress := 0 asBPAddress.
 ]
 
-{ #category : #'inner interpreter' }
+{ #category : #macros }
 JollyEForthAssembler >> next [
 	"The function of $NEXT is to
 		- fetch the next word pointed to by the Interpreter Pointer IP,
@@ -104,16 +137,16 @@ JollyEForthAssembler >> next [
 		JUMP *W;
 	"
 	
-	self moveWordFromIndirect: #IP to: #WP.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #WP).
 	"Cells are 24bits, 3 bytes so need to increment #IP 3 times."
-	self incrementWord: #IP.
-	self incrementWord: #IP.
-	self incrementWord: #IP.
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #IP).
 	"We need to jump to the address stored in memory at address pointed by #WP.
 	 So we fetch this word and store it in #WP (thus erasing the pointer to this address).
 	"
-	self moveWordFromIndirect: #WP to: #WP.
-	self jump: #WP
+	self moveWordFromIndirect: (self addressOfMemoryZone: #WP) to: (self addressOfMemoryZone: #X).
+	self jump: (self addressOfMemoryZone: #X)
 ]
 
 { #category : #accessing }

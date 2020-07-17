@@ -13,7 +13,7 @@ JollyEForthLayout >> endAddress [
 JollyEForthLayout >> initialize [
 	| available_memory_start |
 	super initialize.
-	available_memory_start := 16r10.
+	available_memory_start := 9.
 	self
 		name: 'JollyForth';
 		addAll: {
@@ -38,6 +38,7 @@ JollyEForthLayout >> initialize [
 		BPReservedMemoryZone name: #RP startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 6 size: 3.
 		BPReservedMemoryZone name: #WP startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 9 size: 3.
 		BPReservedMemoryZone name: #UP startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 12 size: 3.
+		BPReservedMemoryZone name: #X startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 15 size: 3.
 		BPAddBankBuilder reservedMemoryZoneStartingAt: 16r10000.
 		BPAddZeroFlagBankBuilder reservedMemoryZoneStartingAt: 16r20000.
 		BPCmpBankBuilder reservedMemoryZoneStartingAt: 16r30000.

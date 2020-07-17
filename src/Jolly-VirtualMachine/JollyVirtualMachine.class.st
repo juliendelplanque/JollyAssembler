@@ -13,6 +13,15 @@ Class {
 
 { #category : #running }
 JollyVirtualMachine >> executeInnerLoop [
+	Transcript
+		show: programCounter hex;
+		show: ' - ';
+		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter) hex;
+		show: ',';
+		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 3) hex;
+		show: ',';
+		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 6) hex;
+		cr.
 	self
 		memoryAt: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 3)
 		put: (self memoryAt: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter)).
@@ -22,6 +31,18 @@ JollyVirtualMachine >> executeInnerLoop [
 		bytesStartingAt: programCounter + 6.
 		
 	
+]
+
+{ #category : #running }
+JollyVirtualMachine >> executeInnerLoopUntilReachAddress: address orExecutedInstructionsCountReach: instructionCount [
+	| count |
+	count := 0.
+	[ programCounter ~= address and: [ count < instructionCount ] ]
+		whileTrue: [ 
+			self executeInnerLoop.
+			programCounter = 0 ifTrue: [ self halt ].
+			count := count + 1 ].
+	^ count
 ]
 
 { #category : #'memory manipulation' }
