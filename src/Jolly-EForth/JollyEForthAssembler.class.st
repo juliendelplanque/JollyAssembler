@@ -142,11 +142,8 @@ JollyEForthAssembler >> next [
 	self incrementWord: (self addressOfMemoryZone: #IP).
 	self incrementWord: (self addressOfMemoryZone: #IP).
 	self incrementWord: (self addressOfMemoryZone: #IP).
-	"We need to jump to the address stored in memory at address pointed by #WP.
-	 So we fetch this word and store it in #WP (thus erasing the pointer to this address).
-	"
-	self moveWordFromIndirect: (self addressOfMemoryZone: #WP) to: (self addressOfMemoryZone: #X).
-	self jump: (self addressOfMemoryZone: #X)
+
+	self jumpIndirect: (self addressOfMemoryZone: #WP)
 ]
 
 { #category : #accessing }

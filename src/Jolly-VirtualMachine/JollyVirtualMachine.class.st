@@ -40,7 +40,6 @@ JollyVirtualMachine >> executeInnerLoopUntilReachAddress: address orExecutedInst
 	[ programCounter ~= address and: [ count < instructionCount ] ]
 		whileTrue: [ 
 			self executeInnerLoop.
-			programCounter = 0 ifTrue: [ self halt ].
 			count := count + 1 ].
 	^ count
 ]
