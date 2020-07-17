@@ -16,9 +16,11 @@ JollyAssembler >> add: address1 to: address2 into: resultAddress [
 
 { #category : #assembling }
 JollyAssembler >> assemble [
+	| lastInstruction |
 	self flag: #TODO. "Manage this more cleanly."
-	self instructions last jump class = BPNextInstructionReference
-		ifTrue: [ self instructions last jump: 0 asBPAddress ].
+	lastInstruction := (self instructions reject: #isData) last.
+	lastInstruction jump class = BPNextInstructionReference
+		ifTrue: [ lastInstruction jump: 0 asBPAddress ].
 	^ super assemble
 ]
 
@@ -42,7 +44,7 @@ JollyAssembler >> data: aByteArray [
 	"Inject data in the bytecode.
 	"
 	BPDataZone new
-		byteArray: aByteArray;
+		byteArray: (aByteArray forAssembler: self);
 		generateFor: self
 ]
 
