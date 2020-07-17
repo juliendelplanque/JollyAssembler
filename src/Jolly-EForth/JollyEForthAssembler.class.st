@@ -14,8 +14,16 @@ JollyEForthAssembler >> addressOfMemoryZone: aSymbol [
 ]
 
 { #category : #macros }
+JollyEForthAssembler >> allocateDataStack [
+	"Return stack grows upward, so increment stack pointer to allocate it."
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP).
+]
+
+{ #category : #macros }
 JollyEForthAssembler >> allocateReturnStack [
-	"Return stack grows downward, so decrement stack pointer to deallocate it."
+	"Return stack grows downward, so decrement stack pointer to allocate it."
 	self decrementWord: (self addressOfMemoryZone: #RP).
 	self decrementWord: (self addressOfMemoryZone: #RP).
 	self decrementWord: (self addressOfMemoryZone: #RP).
@@ -39,6 +47,14 @@ JollyEForthAssembler >> codeDefinitionHeaderWithLexicon: lexiconInteger name: st
 { #category : #accessing }
 JollyEForthAssembler >> currentGenerationAddress [
 	^ currentGenerationAddress ifNil: [ currentGenerationAddress := (self memoryLayout reservedMemoryZoneNamed: #DICTIONARY) startAddress ]
+]
+
+{ #category : #macros }
+JollyEForthAssembler >> deallocateDataStack [
+	"Return stack grows upward, so decrement stack pointer to allocate it."
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self decrementWord: (self addressOfMemoryZone: #SP).
 ]
 
 { #category : #macros }
@@ -86,22 +102,22 @@ JollyEForthAssembler >> defineDoList [
 
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineDoLit [
+	"( -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'DOLIT' label: #doLitWord.
-	self moveCharFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #X).
+	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #X).
 	self incrementWord: (self addressOfMemoryZone: #IP).
 	self incrementWord: (self addressOfMemoryZone: #IP).
 	self incrementWord: (self addressOfMemoryZone: #IP).
 	
 	"Pushes value in #X on the data stack."
-	self incrementWord: (self addressOfMemoryZone: #SP).
-	self incrementWord: (self addressOfMemoryZone: #SP).
-	self incrementWord: (self addressOfMemoryZone: #SP).
 	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
 	self next
 ]
 
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineExecute [
+	"( ca -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'EXECUTE' label: #executeWord.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
 	self decrementWord: (self addressOfMemoryZone: #SP).

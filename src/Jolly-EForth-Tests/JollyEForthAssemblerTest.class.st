@@ -118,6 +118,51 @@ JollyEForthAssemblerTest >> testDefineDoList [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineDoLit [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineDoLit;
+		label: #_start;
+		jump: #'doLitWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	(assembly addressOfMemoryZone: #IP)
+		storeAddress: 16r424242 asBPAddress in: memory.
+		
+	16r424242 asBPAddress
+		storeAddress: 42 asBPAddress in: memory.
+		
+	16r424245 asBPAddress
+		storeAddress: 16r524245 asBPAddress in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm executeInnerLoopUntilReachAddress: 16r524245 orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #IP) accessInteger: memory)
+		equals: 16r424248.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 42.
+		
+	self
+		assert: vm programCounter equals: 16r524245
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineExit [
 	| assembly memory assembledCode vm count |
 	assembly := JollyEForthAssembler new.
