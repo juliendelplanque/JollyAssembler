@@ -123,6 +123,19 @@ JollyEForthAssembler >> defineConditionalBranch [
 	
 ]
 
+{ #category : #'return stack' }
+JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
+	"( -- w )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'R@' label: #copyTopOfReturnStackToDataStack.
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #X).
+	self deallocateReturnStack.
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self allocateReturnStack.
+	self next.
+]
+
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineDoList [
 	"In a colon word, the first four byte in the code field must be a subroutine call
@@ -243,6 +256,28 @@ JollyEForthAssembler >> defineNext [
 		incrementWord: (self addressOfMemoryZone: #IP);
 		incrementWord: (self addressOfMemoryZone: #IP);
 		next.
+]
+
+{ #category : #'return stack' }
+JollyEForthAssembler >> definePopReturnStackToDataStack [
+	"( -- w )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'R>' label: #popReturnStackToDataStack.
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #X).
+	self deallocateReturnStack.
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self next.
+]
+
+{ #category : #'return stack' }
+JollyEForthAssembler >> defineRPFetch [
+	self flag: #TODO. "It is not mandatory to implement it thus, we do not do it for now."
+]
+
+{ #category : #'return stack' }
+JollyEForthAssembler >> defineRPStore [
+	self flag: #TODO. "It is not mandatory to implement it thus, we do not do it for now."
 ]
 
 { #category : #'memory-access' }
