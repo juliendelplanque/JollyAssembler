@@ -163,6 +163,43 @@ JollyEForthAssemblerTest >> testDefineDoLit [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineExecute [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineExecute;
+		label: #_start;
+		jump: #'executeWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r424242 in: memory.
+	
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm executeInnerLoopUntilReachAddress: 16r424242 orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
+		
+	self
+		assert: vm programCounter
+		equals: 16r424242
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineExit [
 	| assembly memory assembledCode vm count |
 	assembly := JollyEForthAssembler new.

@@ -123,7 +123,7 @@ JollyEForthAssembler >> defineExecute [
 	self decrementWord: (self addressOfMemoryZone: #SP).
 	self decrementWord: (self addressOfMemoryZone: #SP).
 	self decrementWord: (self addressOfMemoryZone: #SP).
-	self jump: (self addressOfMemoryZone: #X)
+	self jumpIndirect: (self addressOfMemoryZone: #X)
 ]
 
 { #category : #'inner interpreter' }
