@@ -78,16 +78,129 @@ JollyEForthAssemblerTest >> testDefineBranch [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineCFetch [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineCFetch;
+		
+		label: #_start;
+		jump: #'cFetchWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	16r424242 asBPAddress
+		store: 42 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 42
 ]
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineCStore [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineCStore;
+		
+		label: #_start;
+		jump: #'cStoreWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 and 42 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r424242 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 42 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
+		
+	self
+		assert: (16r424242 asBPAddress access: memory)
+		equals: 42
+]
 
-	self flag: #toImplement.
-	self assert: false
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineCStore2 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineCStore;
+		
+		label: #_start;
+		jump: #'cStoreWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 and 42 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r424242 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16rFFFF2A in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
+		
+	self
+		assert: (16r424242 asBPAddress access: memory)
+		equals: 42
 ]
 
 { #category : #test }
@@ -284,9 +397,47 @@ JollyEForthAssemblerTest >> testDefineExit [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineFetch [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineFetch;
+		
+		label: #_start;
+		jump: #'fetchWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	16r424242 asBPAddress
+		storeInteger: 42 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 42
 ]
 
 { #category : #test }
@@ -320,9 +471,43 @@ JollyEForthAssemblerTest >> testDefineNext [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineStore [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineStore;
+		
+		label: #_start;
+		jump: #'storeWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 and 42 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r424242 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 42 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
+		
+	self
+		assert: (16r424242 asBPAddress accessInteger: memory)
+		equals: 42
 ]
 
 { #category : #test }

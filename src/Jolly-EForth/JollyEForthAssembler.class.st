@@ -76,11 +76,15 @@ JollyEForthAssembler >> defineBranch [
 { #category : #'memory-access' }
 JollyEForthAssembler >> defineCFetch [
 	"( a -- b )"
-	self codeDefinitionHeaderWithLexicon: 0 name: 'C@' label: #fetchWord.
+	self codeDefinitionHeaderWithLexicon: 0 name: 'C@' label: #cFetchWord.
 	
-	self moveCharFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #SP) + 2.
-	self moveCharFrom: 0 to: (self addressOfMemoryZone: #SP). "Erase high-weight byte of the cell."
-	self moveCharFrom: 0 to: (self addressOfMemoryZone: #SP) + 1. "Erase middle-weight byte of the cell."
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self moveCharFromIndirect: (self addressOfMemoryZone: #X) to: (self addressOfMemoryZone: #X) + 2.
+	self moveCharFrom: 0 to: (self addressOfMemoryZone: #X). "Erase high-weight byte of the cell."
+	self moveCharFrom: 0 to: (self addressOfMemoryZone: #X) + 1. "Erase middle-weight byte of the cell."
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
 	self next
 ]
 
@@ -89,10 +93,10 @@ JollyEForthAssembler >> defineCStore [
 	"( b a -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'C!' label: #cStoreWord.
 	
+	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "Address to store cell at."
 	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y). "Cell containing byte to store."
-	self deallocateDataStack.
 	self moveCharFrom: (self addressOfMemoryZone: #Y) + 2 toIndirect: (self addressOfMemoryZone: #X). "Move only the byte that is stored in low-weight byte of the cell."
 	self next
 ]
@@ -206,7 +210,11 @@ JollyEForthAssembler >> defineFetch [
 	"( a -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: '@' label: #fetchWord.
 	
-	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #SP).
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self moveWordFromIndirect: (self addressOfMemoryZone: #X) to: (self addressOfMemoryZone: #Y).
+	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
 	self next
 ]
 
@@ -242,10 +250,10 @@ JollyEForthAssembler >> defineStore [
 	"( w a -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: '!' label: #storeWord.
 	
+	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "Address to store cell at."
 	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y). "Cell to store."
-	self deallocateDataStack.
 	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #X).
 	self next
 ]
