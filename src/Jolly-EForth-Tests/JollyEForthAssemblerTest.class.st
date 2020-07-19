@@ -516,6 +516,48 @@ JollyEForthAssemblerTest >> testDefineNext [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefinePopDataStackToReturnStack [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		definePopDataStackToReturnStack;
+		
+		label: #_start;
+		jump: #'popDataStackToReturnStack-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #RP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #RETURN_STACK) memoryAddress - 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #RETURN_STACK) - 3 accessInteger: memory)
+		equals: 16r424242.
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefinePopReturnStackToDataStack [
 	| assembly memory assembledCode vm |
 	assembly := JollyEForthAssembler new.

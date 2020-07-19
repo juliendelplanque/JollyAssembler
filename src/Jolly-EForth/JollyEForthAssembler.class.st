@@ -259,6 +259,18 @@ JollyEForthAssembler >> defineNext [
 ]
 
 { #category : #'return stack' }
+JollyEForthAssembler >> definePopDataStackToReturnStack [
+	"( w -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: '>R' label: #popDataStackToReturnStack.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self allocateReturnStack.
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #RP).
+	self next.
+]
+
+{ #category : #'return stack' }
 JollyEForthAssembler >> definePopReturnStackToDataStack [
 	"( -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'R>' label: #popReturnStackToDataStack.
