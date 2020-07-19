@@ -28,7 +28,7 @@ JollyAssemblerTest >> testCmpWith [
 				
 	5 timesRepeat: [ vm executeInnerLoop ].
 	
-	self assert: ((assembly registerNamed: #A) valueIn: memory) equals: TRUE_VALUE.
+	self assert: ((assembly registerNamed: #ZERO) valueIn: memory) equals: TRUE_VALUE.
 	self assert: ((assembly registerNamed: #B) valueIn: memory) equals: 5.
 ]
 
@@ -98,6 +98,58 @@ JollyAssemblerTest >> testCmpWithInto2 [
 	self assert: ((assembly registerNamed: #A) valueIn: memory) equals: 5.
 	self assert: ((assembly registerNamed: #B) valueIn: memory) equals: 4.
 	self assert: ((assembly registerNamed: #C) valueIn: memory) equals: FALSE_VALUE
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testCmpWordWithWordInto [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord1;
+		data: #[1 2 3];
+		label: #addressForWord2;
+		data: #[0 0 0];
+		label: #endData;
+		cmpWord: #addressForWord1 withWord: #addressForWord2 into: #ZERO.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	30 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembly registerNamed: #ZERO) valueIn: memory) equals: FALSE_VALUE
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testCmpWordWithWordInto2 [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord1;
+		data: #[1 2 3];
+		label: #addressForWord2;
+		data: #[1 2 3];
+		label: #endData;
+		cmpWord: #addressForWord1 withWord: #addressForWord2 into: #ZERO.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	30 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembly registerNamed: #ZERO) valueIn: memory) equals: TRUE_VALUE
 ]
 
 { #category : #test }

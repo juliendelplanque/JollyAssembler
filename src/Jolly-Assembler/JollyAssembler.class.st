@@ -1,6 +1,9 @@
 Class {
 	#name : #JollyAssembler,
 	#superclass : #BPAbstractAssembler,
+	#pools : [
+		'BPConstants'
+	],
 	#category : #'Jolly-Assembler'
 }
 
@@ -31,12 +34,22 @@ JollyAssembler >> carryFlag: address1 with: address2 into: resultAddress [
 
 { #category : #instructions }
 JollyAssembler >> cmp: address1 with: address2 [
-	self cmp: address1 with: address2 into: address1
+	self cmp: address1 with: address2 into: #ZERO
 ]
 
 { #category : #instructions }
 JollyAssembler >> cmp: address1 with: address2 into: resultAddress [
 	self lookupBank: (self reservedMemoryZoneNamed: #CMP_PAGE) address from: address1 from: address2 to: resultAddress
+]
+
+{ #category : #instructions }
+JollyAssembler >> cmpWord: address1 withWord: address2 into: resultAddress [
+	self cmp: (address1 forAssembler: self) with: (address2 forAssembler: self) into: #A.
+	self cmp: (address1 forAssembler: self) + 1 with: (address2 forAssembler: self) + 1 into: #B.
+	self add: #A to: #B into: #A.
+	self cmp: (address1 forAssembler: self) + 2 with: (address2 forAssembler: self) + 2 into: #B.
+	self add: #A to: #B into: #A.
+	self cmp: #A with: (TRUE_VALUE * 3).
 ]
 
 { #category : #accessing }
