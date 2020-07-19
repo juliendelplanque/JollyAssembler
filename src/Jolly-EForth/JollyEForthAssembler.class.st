@@ -125,7 +125,7 @@ JollyEForthAssembler >> defineConditionalBranch [
 
 { #category : #'return stack' }
 JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
-	"( -- w )"
+	"( w -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'R@' label: #copyTopOfReturnStackToDataStack.
 	
 	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #X).
@@ -181,6 +181,28 @@ JollyEForthAssembler >> defineDoLit [
 	self incrementWord: (self addressOfMemoryZone: #IP).
 	
 	"Pushes value in #X on the data stack."
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self next
+]
+
+{ #category : #'data stack' }
+JollyEForthAssembler >> defineDrop [
+	"( w -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'DROP' label: #drop.
+	
+	self deallocateDataStack.
+	self next
+]
+
+{ #category : #'data stack' }
+JollyEForthAssembler >> defineDup [
+	"( w -- w w )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'DUP' label: #dup.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self allocateDataStack.
 	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
 	self allocateDataStack.
 	self next
@@ -258,6 +280,21 @@ JollyEForthAssembler >> defineNext [
 		next.
 ]
 
+{ #category : #'data stack' }
+JollyEForthAssembler >> defineOver [
+	"( w1 w2 -- w1 w2 w1 )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'OVER' label: #over.
+	
+	self deallocateDataStack.
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "w1"
+	self allocateDataStack.
+	self allocateDataStack.
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self next
+]
+
 { #category : #'return stack' }
 JollyEForthAssembler >> definePopDataStackToReturnStack [
 	"( w -- )"
@@ -302,6 +339,22 @@ JollyEForthAssembler >> defineStore [
 	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y). "Cell to store."
 	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #X).
+	self next
+]
+
+{ #category : #'data stack' }
+JollyEForthAssembler >> defineSwap [
+	"( w1 w2 -- w2 w1 )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'SWAP' label: #swap.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "w2"
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y). "w1"
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
 	self next
 ]
 

@@ -350,6 +350,20 @@ JollyEForthAssemblerTest >> testDefineDoLit [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineDrop [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineDup [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineExecute [
 	| assembly memory assembledCode vm count |
 	assembly := JollyEForthAssembler new.
@@ -516,6 +530,13 @@ JollyEForthAssemblerTest >> testDefineNext [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineOver [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefinePopDataStackToReturnStack [
 	| assembly memory assembledCode vm |
 	assembly := JollyEForthAssembler new.
@@ -638,6 +659,13 @@ JollyEForthAssemblerTest >> testDefineStore [
 	self
 		assert: (16r424242 asBPAddress accessInteger: memory)
 		equals: 42
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineSwap [
+
+	self flag: #toImplement.
+	self assert: false
 ]
 
 { #category : #test }
