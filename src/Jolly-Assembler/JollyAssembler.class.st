@@ -43,6 +43,11 @@ JollyAssembler >> cmp: address1 with: address2 into: resultAddress [
 ]
 
 { #category : #instructions }
+JollyAssembler >> cmpWord: address1 withWord: address2 [
+	self cmpWord: address1 withWord: address2 into: #ZERO
+]
+
+{ #category : #instructions }
 JollyAssembler >> cmpWord: address1 withWord: address2 into: resultAddress [
 	self cmp: (address1 forAssembler: self) with: (address2 forAssembler: self) into: #A.
 	self cmp: (address1 forAssembler: self) + 1 with: (address2 forAssembler: self) + 1 into: #B.

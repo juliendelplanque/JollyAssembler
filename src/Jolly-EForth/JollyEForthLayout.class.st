@@ -39,6 +39,9 @@ JollyEForthLayout >> initialize [
 		BPReservedMemoryZone name: #WP startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 9 size: 3.
 		BPReservedMemoryZone name: #UP startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 12 size: 3.
 		BPReservedMemoryZone name: #X startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 15 size: 3.
+		BPReservedMemoryZone name: #Y startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 18 size: 3.
+		BPReservedMemoryZone name: #Z startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 21 size: 3.
+		BPReservedMemoryZone name: #ZERO_WORD startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 24 size: 3.
 		BPAddBankBuilder reservedMemoryZoneStartingAt: 16r10000.
 		BPAddZeroFlagBankBuilder reservedMemoryZoneStartingAt: 16r20000.
 		BPCmpBankBuilder reservedMemoryZoneStartingAt: 16r30000.
@@ -60,4 +63,7 @@ JollyEForthLayout >> initializeMemory: memory [
 		
 	(self reservedMemoryZoneNamed: #RP) address
 		storeInteger: (self reservedMemoryZoneNamed: #RETURN_STACK) address memoryAddress in: memory.
+		
+	(self reservedMemoryZoneNamed: #ZERO_WORD) address
+		storeInteger: 0 in: memory
 ]

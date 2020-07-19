@@ -70,6 +70,34 @@ JollyEForthAssemblerTest >> testCodeDefinitionHeaderWithLexiconNameLabel2 [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineBranch [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineCFetch [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineCStore [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineConditionalBranch [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineDoList [
 	| assembly memory assembledCode vm count |
 	assembly := JollyEForthAssembler new.
@@ -252,6 +280,49 @@ JollyEForthAssemblerTest >> testDefineExit [
 	self
 		assert: ((assembly addressOfMemoryZone: #WP) accessInteger: memory)
 		equals: 16r524242
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineFetch [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineNext [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineNext;
+		label: #_start;
+		jump: #'nextWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000001 is on the data stack."
+	(assembly addressOfMemoryZone: #RP)
+		storeInteger: (assembly addressOfMemoryZone: #RETURN_STACK) memoryAddress - 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #RETURN_STACK) - 3
+		storeInteger: 16r000001 in: memory.
+	
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	self fail: 'Need to see how to test that.'
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineStore [
+
+	self flag: #toImplement.
+	self assert: false
 ]
 
 { #category : #test }

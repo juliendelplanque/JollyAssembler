@@ -65,6 +65,60 @@ JollyEForthAssembler >> deallocateReturnStack [
 	self incrementWord: (self addressOfMemoryZone: #RP).
 ]
 
+{ #category : #'loop-and-branches' }
+JollyEForthAssembler >> defineBranch [
+	self codeDefinitionHeaderWithLexicon: 0 name: 'BRANCH' label: #branchWord.
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #IP).
+	self next.
+]
+
+{ #category : #'memory-access' }
+JollyEForthAssembler >> defineCFetch [
+	"( a -- b )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'C@' label: #fetchWord.
+	
+	self moveCharFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #SP) + 2.
+	self moveCharFrom: 0 to: (self addressOfMemoryZone: #SP). "Erase high-weight byte of the cell."
+	self moveCharFrom: 0 to: (self addressOfMemoryZone: #SP) + 1. "Erase middle-weight byte of the cell."
+	self next
+]
+
+{ #category : #'memory-access' }
+JollyEForthAssembler >> defineCStore [
+	"( b a -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'C!' label: #cStoreWord.
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "Address to store cell at."
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y). "Cell containing byte to store."
+	self deallocateDataStack.
+	self moveCharFrom: (self addressOfMemoryZone: #Y) + 2 toIndirect: (self addressOfMemoryZone: #X). "Move only the byte that is stored in low-weight byte of the cell."
+	self next
+]
+
+{ #category : #'loop-and-branches' }
+JollyEForthAssembler >> defineConditionalBranch [
+	self codeDefinitionHeaderWithLexicon: 0 name: '?BRANCH' label: #conditionalBranchWord.
+	
+	self moveCharFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self deallocateDataStack.
+	
+	self cmpWord: (self addressOfMemoryZone: #X) withWord: (self addressOfMemoryZone: #ZERO_WORD).
+	self jumpIfEqual: #conditionalBranchWord1.
+	
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self incrementWord: (self addressOfMemoryZone: #IP).
+	self next.
+	
+	self label: #conditionalBranchWord1;
+		moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #IP);
+		next.
+	
+	
+]
+
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineDoList [
 	"In a colon word, the first four byte in the code field must be a subroutine call
@@ -144,6 +198,55 @@ JollyEForthAssembler >> defineExit [
 	"Pop address from return stack."
 	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #IP).
 	self deallocateReturnStack.
+	self next
+]
+
+{ #category : #'memory-access' }
+JollyEForthAssembler >> defineFetch [
+	"( a -- w )"
+	self codeDefinitionHeaderWithLexicon: 0 name: '@' label: #fetchWord.
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #SP).
+	self next
+]
+
+{ #category : #'loop-and-branches' }
+JollyEForthAssembler >> defineNext [
+
+	self codeDefinitionHeaderWithLexicon: 0 name: 'NEXT' label: #nextWord.
+	"Fetch the word at the top of return stack into #X register."
+	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #X).
+	"Check if X = 0."
+	self cmp: (self addressOfMemoryZone: #X) with: (self addressOfMemoryZone: #ZERO_WORD).
+	self jumpIfEqual: #nextWord1.
+	
+	"If X ~= 0, decrement it and update top of the stack."
+	self decrementWord: (self addressOfMemoryZone: #X).
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #RP).
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #IP).
+	self next.
+	
+	"If x = 0,"
+	self label: #nextWord1;
+		deallocateReturnStack; "Pop the index"
+		"Exit loop."
+		incrementWord: (self addressOfMemoryZone: #IP);
+		incrementWord: (self addressOfMemoryZone: #IP);
+		incrementWord: (self addressOfMemoryZone: #IP);
+		next.
+]
+
+{ #category : #'memory-access' }
+JollyEForthAssembler >> defineStore [
+	"( w a -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: '!' label: #storeWord.
+	
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "Address to store cell at."
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y). "Cell to store."
+	self deallocateDataStack.
+	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #X).
 	self next
 ]
 
