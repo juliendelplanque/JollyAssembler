@@ -189,16 +189,18 @@ JollyEForthAssembler >> defineDoLit [
 { #category : #'data stack' }
 JollyEForthAssembler >> defineDrop [
 	"( w -- )"
-	self codeDefinitionHeaderWithLexicon: 0 name: 'DROP' label: #drop.
+	self codeDefinitionHeaderWithLexicon: 0 name: 'DROP' label: #dropWord.
 	
+	self nop.
 	self deallocateDataStack.
+	self nop.
 	self next
 ]
 
 { #category : #'data stack' }
 JollyEForthAssembler >> defineDup [
 	"( w -- w w )"
-	self codeDefinitionHeaderWithLexicon: 0 name: 'DUP' label: #dup.
+	self codeDefinitionHeaderWithLexicon: 0 name: 'DUP' label: #dupWord.
 	
 	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
@@ -283,7 +285,7 @@ JollyEForthAssembler >> defineNext [
 { #category : #'data stack' }
 JollyEForthAssembler >> defineOver [
 	"( w1 w2 -- w1 w2 w1 )"
-	self codeDefinitionHeaderWithLexicon: 0 name: 'OVER' label: #over.
+	self codeDefinitionHeaderWithLexicon: 0 name: 'OVER' label: #overWord.
 	
 	self deallocateDataStack.
 	self deallocateDataStack.
@@ -345,7 +347,7 @@ JollyEForthAssembler >> defineStore [
 { #category : #'data stack' }
 JollyEForthAssembler >> defineSwap [
 	"( w1 w2 -- w2 w1 )"
-	self codeDefinitionHeaderWithLexicon: 0 name: 'SWAP' label: #swap.
+	self codeDefinitionHeaderWithLexicon: 0 name: 'SWAP' label: #swapWord.
 	
 	self deallocateDataStack.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X). "w2"

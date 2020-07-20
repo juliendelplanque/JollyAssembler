@@ -40,7 +40,7 @@ JollyAssemblerTest >> testCmpWith2 [
 	assembly
 		moveCharFrom: 5 to: #A;
 		moveCharFrom: 4 to: #B;
-		cmp: #A with: #B.
+		cmp: #A with: #B into: #A.
 	
 	memory := assembly assemble serialize.
 	vm := JollyVirtualMachine new

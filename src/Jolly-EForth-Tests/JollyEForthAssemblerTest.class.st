@@ -351,16 +351,86 @@ JollyEForthAssemblerTest >> testDefineDoLit [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineDrop [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineDrop;
+		
+		label: #_start;
+		jump: #'dropWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+	
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm executeInnerLoopUntilReachAddress: 0 orExecutedInstructionsCountReach: 1000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
 ]
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineDup [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineDup;
+		
+		label: #_start;
+		jump: #'dupWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 16r424242.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3 accessInteger: memory)
+		equals: 16r424242
 ]
 
 { #category : #test }
@@ -663,9 +733,51 @@ JollyEForthAssemblerTest >> testDefineStore [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineSwap [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineSwap;
+		
+		label: #_start;
+		jump: #'swapWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242, 16r424243 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r424243 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm executeInnerLoopUntilReachAddress: 0 orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 16r424243.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3 accessInteger: memory)
+		equals: 16r424242
 ]
 
 { #category : #test }
