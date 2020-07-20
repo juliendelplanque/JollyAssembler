@@ -849,6 +849,20 @@ JollyEForthAssemblerTest >> testDefineRPStore [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineSPFetch [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineSPStore [
+
+	self flag: #toImplement.
+	self assert: false
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineStore [
 	| assembly memory assembledCode vm |
 	assembly := JollyEForthAssembler new.

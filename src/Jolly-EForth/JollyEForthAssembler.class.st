@@ -347,6 +347,28 @@ JollyEForthAssembler >> defineRPStore [
 	self next
 ]
 
+{ #category : #'data stack' }
+JollyEForthAssembler >> defineSPFetch [
+	self codeDefinitionHeaderWithLexicon: 0 name: 'SP@' label: #spFetchWord.
+	
+	self moveWordFrom: (self addressOfMemoryZone: #SP) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self label: (#spFetchWord , '-next') asSymbol.
+	self next
+]
+
+{ #category : #'data stack' }
+JollyEForthAssembler >> defineSPStore [
+	self codeDefinitionHeaderWithLexicon: 0 name: 'SP!' label: #spStoreWord.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #SP).
+	
+	self label: (#spStoreWord, '-next') asSymbol.
+	self next
+]
+
 { #category : #'memory-access' }
 JollyEForthAssembler >> defineStore [
 	"( w a -- )"
