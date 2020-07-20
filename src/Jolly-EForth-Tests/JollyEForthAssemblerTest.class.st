@@ -848,7 +848,7 @@ JollyEForthAssemblerTest >> testDefineSwap [
 				loadProgramCounter;
 				yourself.
 	
-	count := vm executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'swapWord-next') orExecutedInstructionsCountReach: 3000.
+	count := vm executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'swapWord-next') address memoryAddress orExecutedInstructionsCountReach: 3000.
 	
 	self
 		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
