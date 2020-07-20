@@ -670,7 +670,7 @@ JollyEForthAssemblerTest >> testDefineOver [
 				loadProgramCounter;
 				yourself.
 	
-	count := vm executeInnerLoopUntilReachAddress: 0 orExecutedInstructionsCountReach: 2000.
+	count := vm executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'overWord-next') address memoryAddress orExecutedInstructionsCountReach: 2000.
 	
 	self
 		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)

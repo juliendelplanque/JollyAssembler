@@ -294,6 +294,8 @@ JollyEForthAssembler >> defineOver [
 	self allocateDataStack.
 	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
 	self allocateDataStack.
+	
+	self label: (#overWord , '-next') asSymbol.
 	self next
 ]
 
