@@ -325,12 +325,26 @@ JollyEForthAssembler >> definePopReturnStackToDataStack [
 
 { #category : #'return stack' }
 JollyEForthAssembler >> defineRPFetch [
-	self flag: #TODO. "It is not mandatory to implement it thus, we do not do it for now."
+	"( -- a )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'RP@' label: #rpFetchWord.
+	
+	self moveWordFrom: (self addressOfMemoryZone: #RP) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self label: (#rpFetchWord , '-next') asSymbol.
+	self next
 ]
 
 { #category : #'return stack' }
 JollyEForthAssembler >> defineRPStore [
-	self flag: #TODO. "It is not mandatory to implement it thus, we do not do it for now."
+	"( a -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'RP!' label: #rpStoreWord.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #RP).
+	
+	self label: (#rpStoreWord, '-next') asSymbol.
+	self next
 ]
 
 { #category : #'memory-access' }

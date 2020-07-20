@@ -387,7 +387,7 @@ JollyEForthAssemblerTest >> testDefineDoLit [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineDrop [
-	| assembly memory assembledCode vm count |
+	| assembly memory assembledCode vm |
 	assembly := JollyEForthAssembler new.
 	
 	assembly
@@ -771,6 +771,81 @@ JollyEForthAssemblerTest >> testDefinePopReturnStackToDataStack [
 	self
 		assert: ((assembly addressOfMemoryZone: #RP) accessInteger: memory)
 		equals: (assembly addressOfMemoryZone: #RETURN_STACK) memoryAddress
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineRPFetch [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineRPFetch;
+		
+		label: #_start;
+		jump: #'rpFetchWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'rpFetchWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 1000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: ((assembly addressOfMemoryZone: #RP) accessInteger: memory)
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineRPStore [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineRPStore;
+		
+		label: #_start;
+		jump: #'rpStoreWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+	
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'rpStoreWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 1000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #RP) accessInteger: memory)
+		equals: 16r424242.
 ]
 
 { #category : #test }
