@@ -191,9 +191,9 @@ JollyEForthAssembler >> defineDrop [
 	"( w -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'DROP' label: #dropWord.
 	
-	self nop.
 	self deallocateDataStack.
-	self nop.
+	
+	self label: (#dropWord , '-next') asSymbol.
 	self next
 ]
 
@@ -357,6 +357,8 @@ JollyEForthAssembler >> defineSwap [
 	self allocateDataStack.
 	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #SP).
 	self allocateDataStack.
+	
+	self label: (#swapWord , '-next') asSymbol.
 	self next
 ]
 

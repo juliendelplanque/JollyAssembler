@@ -195,6 +195,107 @@ JollyAssemblerTest >> testDecrementInto [
 ]
 
 { #category : #test }
+JollyAssemblerTest >> testDecrementWord [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord;
+		data: #[1 2 3];
+		label: #endData;
+		decrementWord: #addressForWord.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	30 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010202.
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testDecrementWord2 [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord;
+		data: #[1 2 3];
+		label: #endData;
+		decrementWord: #addressForWord;
+		decrementWord: #addressForWord..
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	60 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010201.
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testDecrementWord3 [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord;
+		data: #[1 2 3];
+		label: #endData;
+		decrementWord: #addressForWord;
+		decrementWord: #addressForWord;
+		decrementWord: #addressForWord.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	90 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010200.
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testDecrementWord4 [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord;
+		data: #[16r04 16r03 16r03];
+		label: #endData;
+		decrementWord: #addressForWord;
+		decrementWord: #addressForWord;
+		decrementWord: #addressForWord.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	90 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r040300.
+]
+
+{ #category : #test }
 JollyAssemblerTest >> testDecrementWordInto [
 	| assembly vm memory assembledCode |
 	assembly := JollyAssembler new.
@@ -273,6 +374,33 @@ JollyAssemblerTest >> testDecrementWordInto3 [
 	
 	self assert: ((assembledCode labelNamed: #addressForWord1) address accessInteger: memory) equals: 16r000000.
 	self assert: ((assembledCode labelNamed: #addressForWord2) address accessInteger: memory) equals: 16rFFFFFF.
+]
+
+{ #category : #test }
+JollyAssemblerTest >> testDecrementWordInto4 [
+	| assembly vm memory assembledCode |
+	assembly := JollyAssembler new.
+	
+	assembly
+		jump: #endData;
+		label: #addressForWord1;
+		data: #[16r04 16r03 16r03];
+		label: #addressForWord2;
+		data: #[0 0 0];
+		label: #endData;
+		decrementWord: #addressForWord1 into: #addressForWord2.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	60 timesRepeat: [ vm executeInnerLoop ].
+	
+	self assert: ((assembledCode labelNamed: #addressForWord1) address accessInteger: memory) equals: 16r040303.
+	self assert: ((assembledCode labelNamed: #addressForWord2) address accessInteger: memory) equals: 16r040302.
 ]
 
 { #category : #test }

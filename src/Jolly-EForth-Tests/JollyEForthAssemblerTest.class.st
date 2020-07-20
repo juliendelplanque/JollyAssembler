@@ -70,6 +70,42 @@ JollyEForthAssemblerTest >> testCodeDefinitionHeaderWithLexiconNameLabel2 [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDeallocateDataStack [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		deallocateDataStack.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424242 in: memory.
+		
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+				
+	500 timesRepeat: [ vm executeInnerLoop ].
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineBranch [
 
 	self flag: #toImplement.
@@ -379,8 +415,9 @@ JollyEForthAssemblerTest >> testDefineDrop [
 				memory: memory;
 				loadProgramCounter;
 				yourself.
-	
-	count := vm executeInnerLoopUntilReachAddress: 0 orExecutedInstructionsCountReach: 1000.
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'dropWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 1000.
 	
 	self
 		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
@@ -601,9 +638,55 @@ JollyEForthAssemblerTest >> testDefineNext [
 
 { #category : #test }
 JollyEForthAssemblerTest >> testDefineOver [
-
-	self flag: #toImplement.
-	self assert: false
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineOver;
+		
+		label: #_start;
+		jump: #'overWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r424242, 16r424243 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r424243 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r424242 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm executeInnerLoopUntilReachAddress: 0 orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 9.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 16r424243.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3 accessInteger: memory)
+		equals: 16r424242.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 6 accessInteger: memory)
+		equals: 16r424243.
 ]
 
 { #category : #test }
@@ -765,7 +848,7 @@ JollyEForthAssemblerTest >> testDefineSwap [
 				loadProgramCounter;
 				yourself.
 	
-	count := vm executeInnerLoopUntilReachAddress: 0 orExecutedInstructionsCountReach: 2000.
+	count := vm executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'swapWord-next') orExecutedInstructionsCountReach: 3000.
 	
 	self
 		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
