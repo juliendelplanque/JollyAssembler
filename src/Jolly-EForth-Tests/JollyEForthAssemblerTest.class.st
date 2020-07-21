@@ -608,6 +608,182 @@ JollyEForthAssemblerTest >> testDefineFetch [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineIsNegative [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineIsNegative;
+		
+		label: #_start;
+		jump: #'isNegativeWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that 0 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 0 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'isNegativeWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 0
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineIsNegative2 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineIsNegative;
+		
+		label: #_start;
+		jump: #'isNegativeWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that 2r100000000000000000000000 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 2r100000000000000000000000 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'isNegativeWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 16rFFFFFF
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineIsNegative3 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineIsNegative;
+		
+		label: #_start;
+		jump: #'isNegativeWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that 2r100000000000000000000000 is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 2r100000100000000010000001 in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'isNegativeWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 16rFFFFFF
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineIsNegative4 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineIsNegative;
+		
+		label: #_start;
+		jump: #'isNegativeWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that 16r0FFFFF is on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r0FFFFF in: memory.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'isNegativeWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) accessInteger: memory)
+		equals: 0
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineNext [
 	| assembly memory assembledCode vm count |
 	assembly := JollyEForthAssembler new.

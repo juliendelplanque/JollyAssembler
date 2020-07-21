@@ -255,6 +255,39 @@ JollyEForthAssembler >> defineFetch [
 	self next
 ]
 
+{ #category : #'logical words' }
+JollyEForthAssembler >> defineIsNegative [
+	"( n -- f )"
+	self codeDefinitionHeaderWithLexicon: 0 name: '0<' label: #isNegativeWord.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self bitAnd: (self addressOfMemoryZone: #X) with: 2r10000000 into: (self addressOfMemoryZone: #Y).
+	
+	self cmp: (self addressOfMemoryZone: #Y) with: 2r10000000.
+	self jumpIfEqual: #isNegative.
+	
+	"If sign bit is equal to 0, push 0 on the data stack."
+	self moveCharFrom: 16r00 to: (self addressOfMemoryZone: #X).
+	self moveCharFrom: 16r00 to: (self addressOfMemoryZone: #X) + 1.
+	self moveCharFrom: 16r00 to: (self addressOfMemoryZone: #X) + 2.
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self jump: (#isNegativeWord , '-next') asSymbol.
+	
+	
+	"If sign bit is equal to 1, push -1 (2r100000000000000000000000) on the data stack."
+	self label: #isNegative.
+	self moveCharFrom: 16rFF to: (self addressOfMemoryZone: #X).
+	self moveCharFrom: 16rFF to: (self addressOfMemoryZone: #X) + 1.
+	self moveCharFrom: 16rFF to: (self addressOfMemoryZone: #X) + 2.
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self label: (#isNegativeWord , '-next') asSymbol.
+	self next
+]
+
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineNext [
 
