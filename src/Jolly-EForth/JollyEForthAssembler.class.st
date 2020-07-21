@@ -65,6 +65,27 @@ JollyEForthAssembler >> deallocateReturnStack [
 	self incrementWord: (self addressOfMemoryZone: #RP).
 ]
 
+{ #category : #'logical words' }
+JollyEForthAssembler >> defineBitwiseAnd [
+	"( w w -- w )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'AND' label: #andWord.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y).
+	
+	self bitAnd: (self addressOfMemoryZone: #X) with: (self addressOfMemoryZone: #Y) into: (self addressOfMemoryZone: #Z).
+	self bitAnd: (self addressOfMemoryZone: #X) + 1 with: (self addressOfMemoryZone: #Y) + 1 into: (self addressOfMemoryZone: #Z) + 1.
+	self bitAnd: (self addressOfMemoryZone: #X) + 2 with: (self addressOfMemoryZone: #Y) + 2 into: (self addressOfMemoryZone: #Z) + 2.
+	
+	self moveWordFrom: (self addressOfMemoryZone: #Z) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self label: (#andWord , '-next') asSymbol.
+	self next.
+]
+
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineBranch [
 	self codeDefinitionHeaderWithLexicon: 0 name: 'BRANCH' label: #branchWord.
