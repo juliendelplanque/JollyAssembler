@@ -52,6 +52,8 @@ JollyEForthLayout >> initialize [
 		BPReservedMemoryZone name: #DATA_STACK startAddress: 16r40300 size: 16r7E80. "Growing upward"
 		BPReservedMemoryZone name: #RETURN_STACK startAddress: 16r048180 size: 16r7E80. "Growing downward"
 		BPAddCarryFlagBankBuilder reservedMemoryZoneStartingAt: 16r50000.
+		BPBitOrBankBuilder reservedMemoryZoneStartingAt: 16r60000.
+		BPBitXorBankBuilder reservedMemoryZoneStartingAt: 16r70000.
 		BPReservedMemoryZone name: #DICTIONARY startAddress: 16r090000 size: 16r100000 }
 ]
 

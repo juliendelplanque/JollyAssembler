@@ -278,6 +278,178 @@ JollyEForthAssemblerTest >> testDefineBitwiseAnd4 [
 ]
 
 { #category : #test }
+JollyEForthAssemblerTest >> testDefineBitwiseOr [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineBitwiseOr;
+		
+		label: #_start;
+		jump: #'orWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000000 and 16r000001 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r000000 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000001 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'orWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r000001
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineBitwiseOr2 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineBitwiseOr;
+		
+		label: #_start;
+		jump: #'orWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000001 and 16r000001 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r000001 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000001 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'orWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r000001
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineBitwiseOr3 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineBitwiseOr;
+		
+		label: #_start;
+		jump: #'orWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000000 and 16r000001 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r000001 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000000 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'orWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r000001
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineBitwiseOr4 [
+	| assembly memory assembledCode vm |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineBitwiseOr;
+		
+		label: #_start;
+		jump: #'orWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000000 and 16r000000 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r000000 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000000 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'orWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 2000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 3.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r000000
+]
+
+{ #category : #test }
 JollyEForthAssemblerTest >> testDefineBranch [
 
 	self flag: #toImplement.
