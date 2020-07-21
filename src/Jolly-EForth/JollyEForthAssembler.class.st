@@ -107,6 +107,27 @@ JollyEForthAssembler >> defineBitwiseOr [
 	self next.
 ]
 
+{ #category : #'logical words' }
+JollyEForthAssembler >> defineBitwiseXor [
+	"( w w -- w )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'XOR' label: #xorWord.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y).
+	
+	self bitXor: (self addressOfMemoryZone: #X) with: (self addressOfMemoryZone: #Y) into: (self addressOfMemoryZone: #Z).
+	self bitXor: (self addressOfMemoryZone: #X) + 1 with: (self addressOfMemoryZone: #Y) + 1 into: (self addressOfMemoryZone: #Z) + 1.
+	self bitXor: (self addressOfMemoryZone: #X) + 2 with: (self addressOfMemoryZone: #Y) + 2 into: (self addressOfMemoryZone: #Z) + 2.
+	
+	self moveWordFrom: (self addressOfMemoryZone: #Z) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self label: (#xorWord , '-next') asSymbol.
+	self next.
+]
+
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineBranch [
 	self codeDefinitionHeaderWithLexicon: 0 name: 'BRANCH' label: #branchWord.

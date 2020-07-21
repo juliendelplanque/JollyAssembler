@@ -38,6 +38,11 @@ JollyAssembler >> bitOr: address1 with: address2 into: resultAddress [
 ]
 
 { #category : #instructions }
+JollyAssembler >> bitXor: address1 with: address2 into: resultAddress [
+	self lookupBank: (self reservedMemoryZoneNamed: #BIT_XOR_PAGE) address from: address1 from: address2 to: resultAddress
+]
+
+{ #category : #instructions }
 JollyAssembler >> carryFlag: address1 with: address2 into: resultAddress [
 	self lookupBank: (self reservedMemoryZoneNamed: #ADD_CARRY_FLAG_PAGE) address from: address1 from: address2 to: resultAddress
 ]
