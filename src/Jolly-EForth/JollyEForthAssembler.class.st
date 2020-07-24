@@ -3,10 +3,43 @@ Class {
 	#superclass : #JollyAssembler,
 	#instVars : [
 		'previousWordAddress',
-		'currentGenerationAddress'
+		'currentGenerationAddress',
+		'assemblerWordsDictionary'
+	],
+	#classVars : [
+		'PRIMITIVE_FILE_STREAM_STDERR',
+		'PRIMITIVE_FILE_STREAM_STDIN',
+		'PRIMITIVE_FILE_STREAM_STDOUT',
+		'PRIMITIVE_ID_CLOSE_FILE',
+		'PRIMITIVE_ID_FAIL',
+		'PRIMITIVE_ID_GET_CHAR',
+		'PRIMITIVE_ID_NOPE',
+		'PRIMITIVE_ID_OPEN_FILE',
+		'PRIMITIVE_ID_PUT_CHAR',
+		'PRIMITIVE_ID_STOP_VM',
+		'PRIMITIVE_NOT_READY',
+		'PRIMITIVE_READY'
 	],
 	#category : #'Jolly-EForth'
 }
+
+{ #category : #'class initialization' }
+JollyEForthAssembler class >> initialize [
+	PRIMITIVE_ID_NOPE := 0.
+	PRIMITIVE_ID_FAIL := 1.
+	PRIMITIVE_ID_PUT_CHAR := 2.
+	PRIMITIVE_ID_GET_CHAR := 3.
+	PRIMITIVE_ID_STOP_VM := 4.
+	PRIMITIVE_ID_OPEN_FILE := 5.
+	PRIMITIVE_ID_CLOSE_FILE := 6.
+	
+	PRIMITIVE_NOT_READY := 0.
+	PRIMITIVE_READY := 1.
+
+	PRIMITIVE_FILE_STREAM_STDIN := 0.
+	PRIMITIVE_FILE_STREAM_STDOUT := 1.
+	PRIMITIVE_FILE_STREAM_STDERR := 2
+]
 
 { #category : #accessing }
 JollyEForthAssembler >> addressOfMemoryZone: aSymbol [
@@ -41,7 +74,29 @@ JollyEForthAssembler >> codeDefinitionHeaderWithLexicon: lexiconInteger name: st
 		data: string encodeAsASCII;
 		label: (assemblyLabel , '-xt') asSymbol.
 				
-	previousWordAddress := assemblyLabel
+	previousWordAddress := assemblyLabel.
+	assemblerWordsDictionary at: string put: (assemblyLabel , '-xt') asSymbol
+]
+
+{ #category : #macros }
+JollyEForthAssembler >> colonDefinitionHeaderWithLexicon: lexiconInteger name: string label: assemblyLabel [
+	" Compiles a colon definition header.
+	"
+	| callLabel |
+	callLabel := ('callLabel' , UUIDGenerator next asString) asSymbol.
+	self codeDefinitionHeaderWithLexicon: lexiconInteger name: string label: assemblyLabel.
+	
+	self allocateReturnStack.
+	self moveWordFrom: callLabel toIndirect: (self addressOfMemoryZone: #RP).
+	self jump: #doLIST.
+	
+	self label: callLabel.
+]
+
+{ #category : #helpers }
+JollyEForthAssembler >> compile: forthCodeAsArray [
+	forthCodeAsArray do: [ :token |
+		self data: (assemblerWordsDictionary at: token) ]
 ]
 
 { #category : #accessing }
@@ -67,6 +122,7 @@ JollyEForthAssembler >> deallocateReturnStack [
 
 { #category : #'logical words' }
 JollyEForthAssembler >> defineBitwiseAnd [
+	<eforthPrimitiveDefinition>
 	"( w w -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'AND' label: #andWord.
 	
@@ -88,6 +144,7 @@ JollyEForthAssembler >> defineBitwiseAnd [
 
 { #category : #'logical words' }
 JollyEForthAssembler >> defineBitwiseOr [
+	<eforthPrimitiveDefinition>
 	"( w w -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'OR' label: #orWord.
 	
@@ -109,6 +166,7 @@ JollyEForthAssembler >> defineBitwiseOr [
 
 { #category : #'logical words' }
 JollyEForthAssembler >> defineBitwiseXor [
+	<eforthPrimitiveDefinition>
 	"( w w -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'XOR' label: #xorWord.
 	
@@ -130,14 +188,31 @@ JollyEForthAssembler >> defineBitwiseXor [
 
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineBranch [
+	<eforthPrimitiveDefinition>
 	self codeDefinitionHeaderWithLexicon: 0 name: 'BRANCH' label: #branchWord.
 	
 	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #IP).
 	self next.
 ]
 
+{ #category : #io }
+JollyEForthAssembler >> defineBye [
+	<eforthPrimitiveDefinition>
+	"( -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'BYE' label: #byeWord.
+	
+	"4 = stop_vm"
+	self moveCharFrom: PRIMITIVE_ID_STOP_VM to: #PRIMITIVE_CALL_ID.
+	"Trigger primitive."
+	self moveCharFrom: PRIMITIVE_READY to: #PRIMITIVE_IS_READY.
+	
+	self label: #'byeWord-next'.
+	self next.
+]
+
 { #category : #'memory-access' }
 JollyEForthAssembler >> defineCFetch [
+	<eforthPrimitiveDefinition>
 	"( a -- b )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'C@' label: #cFetchWord.
 	
@@ -153,6 +228,7 @@ JollyEForthAssembler >> defineCFetch [
 
 { #category : #'memory-access' }
 JollyEForthAssembler >> defineCStore [
+	<eforthPrimitiveDefinition>
 	"( b a -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'C!' label: #cStoreWord.
 	
@@ -166,6 +242,7 @@ JollyEForthAssembler >> defineCStore [
 
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineConditionalBranch [
+	<eforthPrimitiveDefinition>
 	self codeDefinitionHeaderWithLexicon: 0 name: '?BRANCH' label: #conditionalBranchWord.
 	
 	self moveCharFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
@@ -188,6 +265,7 @@ JollyEForthAssembler >> defineConditionalBranch [
 
 { #category : #'return stack' }
 JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
+	<eforthPrimitiveDefinition>
 	"( w -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'R@' label: #copyTopOfReturnStackToDataStack.
 	
@@ -201,6 +279,7 @@ JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
 
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineDoList [
+	<eforthPrimitiveDefinition>
 	"In a colon word, the first four byte in the code field must be a subroutine call
 	 instruction to process the address list following this call instruction.
 	 This address list processing subroutine is named doLIST.
@@ -236,6 +315,7 @@ JollyEForthAssembler >> defineDoList [
 
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineDoLit [
+	<eforthPrimitiveDefinition>
 	"( -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'DOLIT' label: #doLitWord.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #IP) to: (self addressOfMemoryZone: #X).
@@ -251,6 +331,7 @@ JollyEForthAssembler >> defineDoLit [
 
 { #category : #'data stack' }
 JollyEForthAssembler >> defineDrop [
+	<eforthPrimitiveDefinition>
 	"( w -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'DROP' label: #dropWord.
 	
@@ -262,6 +343,7 @@ JollyEForthAssembler >> defineDrop [
 
 { #category : #'data stack' }
 JollyEForthAssembler >> defineDup [
+	<eforthPrimitiveDefinition>
 	"( w -- w w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'DUP' label: #dupWord.
 	
@@ -275,6 +357,7 @@ JollyEForthAssembler >> defineDup [
 
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineExecute [
+	<eforthPrimitiveDefinition>
 	"( ca -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'EXECUTE' label: #executeWord.
 	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
@@ -286,6 +369,7 @@ JollyEForthAssembler >> defineExecute [
 
 { #category : #'inner interpreter' }
 JollyEForthAssembler >> defineExit [
+	<eforthPrimitiveDefinition>
 	"EXIT is a code word which undoes what doLIST accomplished.
 	 EXIT pops the top item on the return stack into the IP register.
 	 Consequently, IP points to the address following the colon word just executed.
@@ -307,6 +391,7 @@ JollyEForthAssembler >> defineExit [
 
 { #category : #'memory-access' }
 JollyEForthAssembler >> defineFetch [
+	<eforthPrimitiveDefinition>
 	"( a -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: '@' label: #fetchWord.
 	
@@ -320,6 +405,7 @@ JollyEForthAssembler >> defineFetch [
 
 { #category : #'logical words' }
 JollyEForthAssembler >> defineIsNegative [
+	<eforthPrimitiveDefinition>
 	"( n -- f )"
 	self codeDefinitionHeaderWithLexicon: 0 name: '0<' label: #isNegativeWord.
 	
@@ -353,7 +439,7 @@ JollyEForthAssembler >> defineIsNegative [
 
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineNext [
-
+	<eforthPrimitiveDefinition>
 	self codeDefinitionHeaderWithLexicon: 0 name: 'NEXT' label: #nextWord.
 	"Fetch the word at the top of return stack into #X register."
 	self moveWordFromIndirect: (self addressOfMemoryZone: #RP) to: (self addressOfMemoryZone: #X).
@@ -380,6 +466,7 @@ JollyEForthAssembler >> defineNext [
 
 { #category : #'data stack' }
 JollyEForthAssembler >> defineOver [
+	<eforthPrimitiveDefinition>
 	"( w1 w2 -- w1 w2 w1 )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'OVER' label: #overWord.
 	
@@ -397,6 +484,7 @@ JollyEForthAssembler >> defineOver [
 
 { #category : #'return stack' }
 JollyEForthAssembler >> definePopDataStackToReturnStack [
+	<eforthPrimitiveDefinition>
 	"( w -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: '>R' label: #popDataStackToReturnStack.
 	
@@ -409,6 +497,7 @@ JollyEForthAssembler >> definePopDataStackToReturnStack [
 
 { #category : #'return stack' }
 JollyEForthAssembler >> definePopReturnStackToDataStack [
+	<eforthPrimitiveDefinition>
 	"( -- w )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'R>' label: #popReturnStackToDataStack.
 	
@@ -419,8 +508,15 @@ JollyEForthAssembler >> definePopReturnStackToDataStack [
 	self next.
 ]
 
+{ #category : #helpers }
+JollyEForthAssembler >> definePrimitives [
+	self primitiveDefinitionPragmas do: [ :pragma |
+		pragma methodSelector value: self ]
+]
+
 { #category : #'return stack' }
 JollyEForthAssembler >> defineRPFetch [
+	<eforthPrimitiveDefinition>
 	"( -- a )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'RP@' label: #rpFetchWord.
 	
@@ -433,6 +529,7 @@ JollyEForthAssembler >> defineRPFetch [
 
 { #category : #'return stack' }
 JollyEForthAssembler >> defineRPStore [
+	<eforthPrimitiveDefinition>
 	"( a -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'RP!' label: #rpStoreWord.
 	
@@ -443,8 +540,18 @@ JollyEForthAssembler >> defineRPStore [
 	self next
 ]
 
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineRot [
+	"( w1 w2 w3 | w2 w3 w1 )"
+	self colonDefinitionHeaderWithLexicon: 0 name: 'ROT' label: #rotWord.
+	
+	self compile: #('>R' 'SWAP' 'R>' 'SWAP').
+	self next
+]
+
 { #category : #'data stack' }
 JollyEForthAssembler >> defineSPFetch [
+	<eforthPrimitiveDefinition>
 	self codeDefinitionHeaderWithLexicon: 0 name: 'SP@' label: #spFetchWord.
 	
 	self moveWordFrom: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
@@ -457,6 +564,7 @@ JollyEForthAssembler >> defineSPFetch [
 
 { #category : #'data stack' }
 JollyEForthAssembler >> defineSPStore [
+	<eforthPrimitiveDefinition>
 	self codeDefinitionHeaderWithLexicon: 0 name: 'SP!' label: #spStoreWord.
 	
 	self deallocateDataStack.
@@ -469,6 +577,7 @@ JollyEForthAssembler >> defineSPStore [
 
 { #category : #'memory-access' }
 JollyEForthAssembler >> defineStore [
+	<eforthPrimitiveDefinition>
 	"( w a -- )"
 	self codeDefinitionHeaderWithLexicon: 0 name: '!' label: #storeWord.
 	
@@ -482,6 +591,7 @@ JollyEForthAssembler >> defineStore [
 
 { #category : #'data stack' }
 JollyEForthAssembler >> defineSwap [
+	<eforthPrimitiveDefinition>
 	"( w1 w2 -- w2 w1 )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'SWAP' label: #swapWord.
 	
@@ -498,8 +608,31 @@ JollyEForthAssembler >> defineSwap [
 	self next
 ]
 
+{ #category : #io }
+JollyEForthAssembler >> defineTX [
+	<eforthPrimitiveDefinition>
+	"( c -- )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'TX!' label: #txWord.
+		
+	self deallocateDataStack.
+	self moveWordFrom: (self addressOfMemoryZone: #SP) to: (#PRIMITIVE_RESULT_HIGH forAssembler: self) address.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self moveCharFrom: (self addressOfMemoryZone: #X) + 2 to: (self addressOfMemoryZone: #X).
+	self moveCharFrom: 0 to: (self addressOfMemoryZone: #X) + 1.
+	
+	self
+		"2 = put_char primitive id"
+		moveCharFrom: PRIMITIVE_ID_PUT_CHAR to: #PRIMITIVE_CALL_ID;
+		"Trigger primitive."
+		moveCharFrom: PRIMITIVE_READY to: #PRIMITIVE_IS_READY.
+		
+	self next
+	
+]
+
 { #category : #'primitive arithmetic' }
 JollyEForthAssembler >> defineUMPlus [
+	<eforthPrimitiveDefinition>
 	"( w w -- w cy )"
 	self codeDefinitionHeaderWithLexicon: 0 name: 'UM+' label: #umPlusWord.
 	
@@ -545,6 +678,7 @@ JollyEForthAssembler >> initialize [
 	super initialize.
 	self memoryLayout: JollyEForthLayout new.
 	previousWordAddress := 0 asBPAddress.
+	assemblerWordsDictionary := Dictionary new
 ]
 
 { #category : #macros }
@@ -575,4 +709,9 @@ JollyEForthAssembler >> next [
 { #category : #accessing }
 JollyEForthAssembler >> previousWordAddress [
 	^ previousWordAddress
+]
+
+{ #category : #helpers }
+JollyEForthAssembler >> primitiveDefinitionPragmas [
+	^ Pragma allNamed: #eforthPrimitiveDefinition in: self class
 ]
