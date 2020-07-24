@@ -508,7 +508,8 @@ JollyAssemblerTest >> testIncrementWord [
 				
 	60 timesRepeat: [ vm executeInnerLoop ].
 	
-	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010204
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010204.
+	self assert: ((assembly registerNamed: #CARRY) address access: memory) equals: FALSE_VALUE.
 ]
 
 { #category : #test }
@@ -532,7 +533,8 @@ JollyAssemblerTest >> testIncrementWord2 [
 				
 	30 timesRepeat: [ vm executeInnerLoop ].
 	
-	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r000001
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r000001.
+	self assert: ((assembly registerNamed: #CARRY) address access: memory) equals: FALSE_VALUE.
 ]
 
 { #category : #test }
@@ -556,7 +558,8 @@ JollyAssemblerTest >> testIncrementWord3 [
 				
 	60 timesRepeat: [ vm executeInnerLoop ].
 	
-	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r000000
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r000000.
+	self assert: ((assembly registerNamed: #CARRY) address access: memory) equals: TRUE_VALUE
 ]
 
 { #category : #test }
@@ -580,7 +583,8 @@ JollyAssemblerTest >> testIncrementWord4 [
 				
 	60 timesRepeat: [ vm executeInnerLoop ].
 	
-	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010000
+	self assert: ((assembledCode labelNamed: #addressForWord) address accessInteger: memory) equals: 16r010000.
+	self assert: ((assembly registerNamed: #CARRY) address access: memory) equals: FALSE_VALUE.
 ]
 
 { #category : #test }

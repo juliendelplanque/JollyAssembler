@@ -143,12 +143,14 @@ JollyAssembler >> incrementWord [
 	incrementAddressFinishedLabel := ('incrementWordFinished-' , UUIDGenerator next asString) asSymbol.
 	
 	self
+		moveCharFrom: FALSE_VALUE to: #CARRY;
 		increment: #C;
 		cmp: #C with: 0 into: #ZERO;
 		jumpIfNotEqual: incrementAddressFinishedLabel;
 		increment: #B;
 		cmp: #B with: 0 into: #ZERO;
 		jumpIfNotEqual: incrementAddressFinishedLabel;
+		cmp: #A with: 255 into: #CARRY;
 		increment: #A;
 		label: incrementAddressFinishedLabel;
 		nop "Ensure it works even if this is the last instruction of program."

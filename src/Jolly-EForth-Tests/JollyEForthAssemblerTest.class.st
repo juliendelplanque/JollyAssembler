@@ -4,6 +4,9 @@ A JollyEForthAssemblerTest is a test class for testing the behavior of JollyEFor
 Class {
 	#name : #JollyEForthAssemblerTest,
 	#superclass : #TestCase,
+	#pools : [
+		'BPConstants'
+	],
 	#category : #'Jolly-EForth-Tests'
 }
 
@@ -1699,6 +1702,147 @@ JollyEForthAssemblerTest >> testDefineSwap [
 	self
 		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3 accessInteger: memory)
 		equals: 16r424242
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineUMPlus [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineUMPlus;
+		
+		label: #_start;
+		jump: #'umPlusWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000000 and 16r000001 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r000000 in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000001 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'umPlusWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 5000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r000001.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3  accessInteger: memory)
+		equals: 16r000000
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineUMPlus2 [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineUMPlus;
+		
+		label: #_start;
+		jump: #'umPlusWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000000 and 16r000001 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16rFFFFFF in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000001 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'umPlusWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 5000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r000000.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3  accessInteger: memory)
+		equals: 16r000001
+]
+
+{ #category : #test }
+JollyEForthAssemblerTest >> testDefineUMPlus3 [
+	| assembly memory assembledCode vm count |
+	assembly := JollyEForthAssembler new.
+	
+	assembly
+		defineUMPlus;
+		
+		label: #_start;
+		jump: #'umPlusWord-xt'.
+	
+	assembledCode := assembly assemble.
+	memory := assembledCode serialize.
+	
+	"Simulate that the address 16r000000 and 16r000001 are on the data stack."
+	(assembly addressOfMemoryZone: #SP)
+		storeInteger: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6
+		in: memory.
+	
+	(assembly addressOfMemoryZone: #DATA_STACK) + 3
+		storeInteger: 16r00002A in: memory.
+		
+	(assembly addressOfMemoryZone: #DATA_STACK)
+		storeInteger: 16r000001 in: memory.
+		
+	vm := JollyVirtualMachine new
+				memory: memory;
+				loadProgramCounter;
+				yourself.
+	
+	count := vm
+		executeInnerLoopUntilReachAddress: (assembledCode labelNamed: #'umPlusWord-next') address memoryAddress 
+		orExecutedInstructionsCountReach: 5000.
+	
+	self
+		assert: ((assembly addressOfMemoryZone: #SP) accessInteger: memory)
+		equals: (assembly addressOfMemoryZone: #DATA_STACK) memoryAddress + 6.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK)  accessInteger: memory)
+		equals: 16r00002B.
+		
+	self
+		assert: ((assembly addressOfMemoryZone: #DATA_STACK) + 3  accessInteger: memory)
+		equals: 16r000000
 ]
 
 { #category : #test }

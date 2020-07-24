@@ -27,7 +27,7 @@ JollyEForthLayout >> initialize [
 		BPRegister name: #A address: available_memory_start.
 		BPRegister name: #B address: available_memory_start + 1.
 		BPRegister name: #C address: available_memory_start + 2.
-		BPRegister name: #UNUSED1 address: available_memory_start + 3.
+		BPRegister name: #D address: available_memory_start + 3.
 		BPRegister name: #CARRY address: available_memory_start + 4.
 		BPRegister name: #ZERO address: available_memory_start + 5.
 		BPRegister name: #RETURN_SP address: available_memory_start + 6.

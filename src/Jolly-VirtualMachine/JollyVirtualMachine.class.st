@@ -34,6 +34,11 @@ JollyVirtualMachine >> executeInnerLoop [
 ]
 
 { #category : #running }
+JollyVirtualMachine >> executeInnerLoopUntilReachAddress: address [
+	^ self executeInnerLoopUntilReachAddress: address orExecutedInstructionsCountReach: Float infinity
+]
+
+{ #category : #running }
 JollyVirtualMachine >> executeInnerLoopUntilReachAddress: address orExecutedInstructionsCountReach: instructionCount [
 	| count |
 	count := 0.

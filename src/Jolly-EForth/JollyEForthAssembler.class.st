@@ -498,6 +498,48 @@ JollyEForthAssembler >> defineSwap [
 	self next
 ]
 
+{ #category : #'primitive arithmetic' }
+JollyEForthAssembler >> defineUMPlus [
+	"( w w -- w cy )"
+	self codeDefinitionHeaderWithLexicon: 0 name: 'UM+' label: #umPlusWord.
+	
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #X).
+	self deallocateDataStack.
+	self moveWordFromIndirect: (self addressOfMemoryZone: #SP) to: (self addressOfMemoryZone: #Y).
+	
+	self label: #umPlusLoop.
+	self cmpWord: (self addressOfMemoryZone: #Y) withWord: (self addressOfMemoryZone: #ZERO_WORD).
+	self jumpIfEqual: #stopUmPlusLoop.
+	
+	self incrementWord: (self addressOfMemoryZone: #X).
+	self decrementWord:  (self addressOfMemoryZone: #Y).
+	
+	self bitOr: #CARRY with: #D into: #D.
+	
+	self jump: #umPlusLoop.
+	
+	self label: #stopUmPlusLoop.
+	self moveCharFrom: #CARRY to: #D. "Backup CARRY flag into #D register"
+	self moveWordFrom: (self addressOfMemoryZone: #X) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self moveCharFrom: #D to: #ZERO.
+	self jumpIfNotEqual: #no_carry.
+	self label: #debug.
+	self incrementWord: (self addressOfMemoryZone: #ZERO_WORD) into: (self addressOfMemoryZone: #Y).
+	self moveWordFrom: (self addressOfMemoryZone: #Y) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	self jump: (#umPlusWord , '-next') asSymbol.
+	
+	self label: #no_carry.
+	self moveWordFrom: (self addressOfMemoryZone: #ZERO_WORD) toIndirect: (self addressOfMemoryZone: #SP).
+	self allocateDataStack.
+	
+	self label: (#umPlusWord , '-next') asSymbol.
+	self next.
+]
+
 { #category : #initialization }
 JollyEForthAssembler >> initialize [
 	super initialize.
