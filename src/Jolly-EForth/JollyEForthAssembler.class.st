@@ -96,7 +96,15 @@ JollyEForthAssembler >> colonDefinitionHeaderWithLexicon: lexiconInteger name: s
 { #category : #helpers }
 JollyEForthAssembler >> compile: forthCodeAsArray [
 	forthCodeAsArray do: [ :token |
-		self data: (assemblerWordsDictionary at: token) ]
+		self data: (self compileToken: token) ]
+]
+
+{ #category : #helpers }
+JollyEForthAssembler >> compileToken: token [
+	token isString
+		ifTrue: [ ^ assemblerWordsDictionary at: token ].
+		
+	self error
 ]
 
 { #category : #accessing }
@@ -118,6 +126,36 @@ JollyEForthAssembler >> deallocateReturnStack [
 	self incrementWord: (self addressOfMemoryZone: #RP).
 	self incrementWord: (self addressOfMemoryZone: #RP).
 	self incrementWord: (self addressOfMemoryZone: #RP).
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> define2Drop [
+	"( w w -- )"
+	self colonDefinitionHeaderWithLexicon: 0 name: '2DROP' label: #'2DropWord'.
+	
+	self label: #'2DropWord-compiled'.
+	self compile: #('DROP' 'DROP').
+	self next
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> define2Dup [
+	"( w1 w2 -- w1 w2 w1 w2 )"
+	self colonDefinitionHeaderWithLexicon: 0 name: '2DUP' label: #'2DupWord'.
+	
+	self label: #'2DupWord-compiled'.
+	self compile: #('OVER' 'OVER').
+	self next
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineAbs [
+	"( n -- +n )"
+	self colonDefinitionHeaderWithLexicon: 0 name: 'ABS' label: #'absWord'.
+	
+	self label: #'absWord-compiled'.
+	self compile: #('DUP' '0<' 'IF' 'NEGATE' 'THEN').
+	self next
 ]
 
 { #category : #'logical words' }
@@ -263,6 +301,16 @@ JollyEForthAssembler >> defineConditionalBranch [
 	
 ]
 
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineConditionalDup [
+	"( w -- w w | 0 )"
+	self colonDefinitionHeaderWithLexicon: 0 name: '?DUP' label: #'conditionalDupWord'.
+	
+	self label: #'conditionalDupWord-compiled'.
+	self compile: #('DUP' 'IF' 'DUP' 'THEN').
+	self next
+]
+
 { #category : #'return stack' }
 JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
 	<eforthPrimitiveDefinition>
@@ -275,6 +323,26 @@ JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
 	self allocateDataStack.
 	self allocateReturnStack.
 	self next.
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineDNegate [
+	"( d -- -d )"
+	self colonDefinitionHeaderWithLexicon: 0 name: 'DNEGATE' label: #'dnegateWord'.
+	
+	self label: #'dnegateWord-compiled'.
+	self compile: #('NOT' '>R' 'NOT' 1 'UM+' 'R>' '+').
+	self next
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineDPlus [
+	"( d d -- -d )"
+	self colonDefinitionHeaderWithLexicon: 0 name: 'DPLUS' label: #'dplusWord'.
+	
+	self label: #'dplusWord-compiled'.
+	self compile: #('>R' 'SWAP' '>R' 'UM+' 'R>' 'R>' '+' '+').
+	self next
 ]
 
 { #category : #'inner interpreter' }
@@ -437,6 +505,26 @@ JollyEForthAssembler >> defineIsNegative [
 	self next
 ]
 
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineMinus [
+	"( w w -- w )"
+	self colonDefinitionHeaderWithLexicon: 0 name: '-' label: #'minusWord'.
+	
+	self label: #'minusWord-compiled'.
+	self compile: #('NEGATE' '+').
+	self next
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineNegate [
+	"( n -- -n )"
+	self colonDefinitionHeaderWithLexicon: 0 name: 'NEGATE' label: #'negateWord'.
+	
+	self label: #'negateWord-compiled'.
+	self compile: #('NOT' 1 '+').
+	self next
+]
+
 { #category : #'loop-and-branches' }
 JollyEForthAssembler >> defineNext [
 	<eforthPrimitiveDefinition>
@@ -464,6 +552,16 @@ JollyEForthAssembler >> defineNext [
 		next.
 ]
 
+{ #category : #'common functions' }
+JollyEForthAssembler >> defineNot [
+	"( w -- w )"
+	self colonDefinitionHeaderWithLexicon: 0 name: 'NOT' label: #'notWord'.
+	
+	self label: #'notWord-compiled'.
+	self compile: #(-1 'XOR').
+	self next
+]
+
 { #category : #'data stack' }
 JollyEForthAssembler >> defineOver [
 	<eforthPrimitiveDefinition>
@@ -479,6 +577,16 @@ JollyEForthAssembler >> defineOver [
 	self allocateDataStack.
 	
 	self label: (#overWord , '-next') asSymbol.
+	self next
+]
+
+{ #category : #'common functions' }
+JollyEForthAssembler >> definePlus [
+	"( w w -- w )"
+	self colonDefinitionHeaderWithLexicon: 0 name: '+' label: #'plusWord'.
+	
+	self label: #'plusWord-compiled'.
+	self compile: #('UM+' 'DROP').
 	self next
 ]
 
@@ -542,9 +650,10 @@ JollyEForthAssembler >> defineRPStore [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineRot [
-	"( w1 w2 w3 | w2 w3 w1 )"
+	"( w1 w2 w3 -- w2 w3 w1 )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'ROT' label: #rotWord.
 	
+	self label: #'rotWord-compiled'.
 	self compile: #('>R' 'SWAP' 'R>' 'SWAP').
 	self next
 ]
