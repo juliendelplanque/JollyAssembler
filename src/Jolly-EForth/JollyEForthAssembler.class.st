@@ -109,8 +109,8 @@ JollyEForthAssembler >> compileToken: token [
 	token isInteger
 		ifTrue: [ 
 			self data: (assemblerWordsDictionary at: 'DOLIT').
-			
-			^ self ]
+			self halt: #TODO. "See how to manage compiling the literal here."
+			^ self ].
 	
 	self error
 ]
