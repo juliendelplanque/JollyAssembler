@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'memory',
-		'programCounter'
+		'programCounter',
+		'announcer'
 	],
 	#pools : [
 		'JollyConstants'
@@ -11,26 +12,43 @@ Class {
 	#category : #'Jolly-VirtualMachine'
 }
 
+{ #category : #announce }
+JollyVirtualMachine >> announce: anAnnouncement [
+	announcer
+		ifNil: [ ^ self ].
+	
+	self announcer announce: anAnnouncement
+]
+
+{ #category : #announce }
+JollyVirtualMachine >> announceAboutMoveByteFrom: fromAddress to: toAddress becauseOfInstructionAtAddress: instructionAddress [
+	self announce: (JollyAboutToMoveByte vm: self address: instructionAddress from: fromAddress to: toAddress)
+]
+
+{ #category : #announce }
+JollyVirtualMachine >> announceAboutToJumpTo: jumpAddress becauseOfInstructionAtAddress: instructionAddress [
+	self announce: (JollyAboutToJump vm: self address: instructionAddress jump: jumpAddress)
+]
+
+{ #category : #accessing }
+JollyVirtualMachine >> announcer [
+	^ announcer ifNil: [ announcer := Announcer new ]
+]
+
 { #category : #running }
 JollyVirtualMachine >> executeInnerLoop [
-	"Transcript
-		show: programCounter hex;
-		show: ' - ';
-		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter) hex;
-		show: ',';
-		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 3) hex;
-		show: ',';
-		show: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 6) hex;
-		cr."
+	| fromAddress toAddress newProgramCounter |
+	fromAddress := self extract: ADDRESS_SIZE bytesStartingAt: programCounter.
+	toAddress := self extract: ADDRESS_SIZE bytesStartingAt: programCounter + ADDRESS_SIZE.
+	self announceAboutMoveByteFrom: fromAddress to: toAddress becauseOfInstructionAtAddress: programCounter.
 	self
-		memoryAt: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter + 3)
-		put: (self memoryAt: (self extract: ADDRESS_SIZE bytesStartingAt: programCounter)).
-	
-	programCounter := self
-		extract: ADDRESS_SIZE
-		bytesStartingAt: programCounter + 6.
+		memoryAt: toAddress
+		put: (self memoryAt: fromAddress).
 		
+	newProgramCounter := self extract: ADDRESS_SIZE bytesStartingAt: programCounter + (2*ADDRESS_SIZE).
+	self announceAboutToJumpTo: newProgramCounter becauseOfInstructionAtAddress: programCounter.
 	
+	programCounter := newProgramCounter
 ]
 
 { #category : #running }
