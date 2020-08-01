@@ -96,14 +96,22 @@ JollyEForthAssembler >> colonDefinitionHeaderWithLexicon: lexiconInteger name: s
 { #category : #helpers }
 JollyEForthAssembler >> compile: forthCodeAsArray [
 	forthCodeAsArray do: [ :token |
-		self data: (self compileToken: token) ]
+		self compileToken: token ]
 ]
 
 { #category : #helpers }
 JollyEForthAssembler >> compileToken: token [
 	token isString
-		ifTrue: [ ^ assemblerWordsDictionary at: token ].
-		
+		ifTrue: [ 
+			self data: (assemblerWordsDictionary at: token).
+			^ self ].
+	
+	token isInteger
+		ifTrue: [ 
+			self data: (assemblerWordsDictionary at: 'DOLIT').
+			
+			^ self ]
+	
 	self error
 ]
 
@@ -130,6 +138,7 @@ JollyEForthAssembler >> deallocateReturnStack [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> define2Drop [
+	<eforthWord: 3>
 	"( w w -- )"
 	self colonDefinitionHeaderWithLexicon: 0 name: '2DROP' label: #'2DropWord'.
 	
@@ -140,6 +149,7 @@ JollyEForthAssembler >> define2Drop [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> define2Dup [
+	<eforthWord: 4>
 	"( w1 w2 -- w1 w2 w1 w2 )"
 	self colonDefinitionHeaderWithLexicon: 0 name: '2DUP' label: #'2DupWord'.
 	
@@ -150,6 +160,7 @@ JollyEForthAssembler >> define2Dup [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineAbs [
+	<eforthWord: 11>
 	"( n -- +n )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'ABS' label: #'absWord'.
 	
@@ -303,6 +314,7 @@ JollyEForthAssembler >> defineConditionalBranch [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineConditionalDup [
+	"<eforthWord: 1>"self flag: #TODO.
 	"( w -- w w | 0 )"
 	self colonDefinitionHeaderWithLexicon: 0 name: '?DUP' label: #'conditionalDupWord'.
 	
@@ -327,6 +339,7 @@ JollyEForthAssembler >> defineCopyTopOfReturnStackToDataStack [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineDNegate [
+	"<eforthWord: 8>"self flag: #TODO.
 	"( d -- -d )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'DNEGATE' label: #'dnegateWord'.
 	
@@ -337,6 +350,7 @@ JollyEForthAssembler >> defineDNegate [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineDPlus [
+	<eforthWord: 9>
 	"( d d -- -d )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'DPLUS' label: #'dplusWord'.
 	
@@ -507,6 +521,7 @@ JollyEForthAssembler >> defineIsNegative [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineMinus [
+	<eforthWord: 10>
 	"( w w -- w )"
 	self colonDefinitionHeaderWithLexicon: 0 name: '-' label: #'minusWord'.
 	
@@ -517,6 +532,7 @@ JollyEForthAssembler >> defineMinus [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineNegate [
+	<eforthWord: 7>
 	"( n -- -n )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'NEGATE' label: #'negateWord'.
 	
@@ -554,6 +570,7 @@ JollyEForthAssembler >> defineNext [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineNot [
+	<eforthWord: 6>
 	"( w -- w )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'NOT' label: #'notWord'.
 	
@@ -582,6 +599,7 @@ JollyEForthAssembler >> defineOver [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> definePlus [
+	<eforthWord: 5>
 	"( w w -- w )"
 	self colonDefinitionHeaderWithLexicon: 0 name: '+' label: #'plusWord'.
 	
@@ -650,6 +668,7 @@ JollyEForthAssembler >> defineRPStore [
 
 { #category : #'common functions' }
 JollyEForthAssembler >> defineRot [
+	<eforthWord: 2>
 	"( w1 w2 w3 -- w2 w3 w1 )"
 	self colonDefinitionHeaderWithLexicon: 0 name: 'ROT' label: #rotWord.
 	
@@ -782,6 +801,12 @@ JollyEForthAssembler >> defineUMPlus [
 	self next.
 ]
 
+{ #category : #helpers }
+JollyEForthAssembler >> defineWords [
+	self wordDefinitionPragmas do: [ :pragma |
+		pragma methodSelector value: self ]
+]
+
 { #category : #initialization }
 JollyEForthAssembler >> initialize [
 	super initialize.
@@ -823,4 +848,10 @@ JollyEForthAssembler >> previousWordAddress [
 { #category : #helpers }
 JollyEForthAssembler >> primitiveDefinitionPragmas [
 	^ Pragma allNamed: #eforthPrimitiveDefinition in: self class
+]
+
+{ #category : #helpers }
+JollyEForthAssembler >> wordDefinitionPragmas [
+	^ (Pragma allNamed: #eforthWord: in: self class)
+		sorted: [ :p | p arguments first ] asSortFunction
 ]
