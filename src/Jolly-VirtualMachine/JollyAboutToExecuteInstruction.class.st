@@ -11,6 +11,14 @@ Class {
 	#category : #'Jolly-VirtualMachine'
 }
 
+{ #category : #'instance creation' }
+JollyAboutToExecuteInstruction class >> vm: aVirtualMachine address: instructionAddress [
+	^ self new
+		virtualMachine: aVirtualMachine;
+		instructionAddress: instructionAddress;
+		yourself
+]
+
 { #category : #accessing }
 JollyAboutToExecuteInstruction >> instructionAddress [
 	^ instructionAddress

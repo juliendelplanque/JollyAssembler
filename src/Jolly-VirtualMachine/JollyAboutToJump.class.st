@@ -16,7 +16,7 @@ JollyAboutToJump class >> vm: aVirtualMachine address: instructionAddress jump: 
 	^ self new
 		virtualMachine: aVirtualMachine;
 		instructionAddress: instructionAddress;
-		jumpAddress: jumpAddress
+		jumpAddress: jumpAddress;
 		yourself
 ]
 

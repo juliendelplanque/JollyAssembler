@@ -26,8 +26,18 @@ JollyVirtualMachine >> announceAboutMoveByteFrom: fromAddress to: toAddress beca
 ]
 
 { #category : #announce }
+JollyVirtualMachine >> announceAboutToExecutePrimitiveWithId: primitiveId resultsAddress: resultsAddress becauseOfInstructionAtAddress: instructionAddress [
+	self announce: (JollyAboutToExecutePrimitive vm: self address: instructionAddress primitiveId: primitiveId resultsAddress: resultsAddress)
+]
+
+{ #category : #announce }
 JollyVirtualMachine >> announceAboutToJumpTo: jumpAddress becauseOfInstructionAtAddress: instructionAddress [
 	self announce: (JollyAboutToJump vm: self address: instructionAddress jump: jumpAddress)
+]
+
+{ #category : #announce }
+JollyVirtualMachine >> announceAboutToLoadPCBecauseOfInstructionAtAddress: instructionAddress [
+	self announce: (JollyAboutToLoadProgramCounter vm: self address: instructionAddress)
 ]
 
 { #category : #accessing }
@@ -38,6 +48,9 @@ JollyVirtualMachine >> announcer [
 { #category : #running }
 JollyVirtualMachine >> executeInnerLoop [
 	| fromAddress toAddress newProgramCounter |
+	self isPrimitiveReady
+		ifTrue: [ self executePrimitive ].
+	
 	fromAddress := self extract: ADDRESS_SIZE bytesStartingAt: programCounter.
 	toAddress := self extract: ADDRESS_SIZE bytesStartingAt: programCounter + ADDRESS_SIZE.
 	self announceAboutMoveByteFrom: fromAddress to: toAddress becauseOfInstructionAtAddress: programCounter.
@@ -67,6 +80,12 @@ JollyVirtualMachine >> executeInnerLoopUntilReachAddress: address orExecutedInst
 	^ count
 ]
 
+{ #category : #primitives }
+JollyVirtualMachine >> executePrimitive [
+	| primitiveId |
+	primitiveId := self memoryAt: PRIMITIVE_CALL_ID_ADDRESS
+]
+
 { #category : #'memory manipulation' }
 JollyVirtualMachine >> extract: n bytesStartingAt: startAddress [
 	"Extract #n bytes starting at the #startAddress and returns the integer formed by those #n bytes concatenated.
@@ -86,9 +105,15 @@ JollyVirtualMachine >> initialize [
 		resetMemory
 ]
 
+{ #category : #testing }
+JollyVirtualMachine >> isPrimitiveReady [
+	^ (self memoryAt: PRIMITIVE_IS_READY_ADDRESS) = PRIMITIVE_READY
+]
+
 { #category : #running }
 JollyVirtualMachine >> loadProgramCounter [
-	programCounter := self extract: 3 bytesStartingAt: PROGRAM_COUNTER_ADDRESS.
+	self announceAboutToLoadPCBecauseOfInstructionAtAddress: 0.
+	programCounter := self extract: ADDRESS_SIZE bytesStartingAt: PROGRAM_COUNTER_ADDRESS.
 ]
 
 { #category : #accessing }
@@ -142,6 +167,7 @@ JollyVirtualMachine >> primitiveCloseFile [
 
 { #category : #primitives }
 JollyVirtualMachine >> primitiveFail [
+	<jollyPrimitive: #PRIMITIVE_ID_FAIL>
 	"A primitive that always fails.
 	 Writes the PRIMITIVE_FAILED_RESULT_CODE at PRIMITIVE_RESULT_CODE_ADDRESS.
 	"
@@ -150,6 +176,7 @@ JollyVirtualMachine >> primitiveFail [
 
 { #category : #primitives }
 JollyVirtualMachine >> primitiveGetChar [
+	<jollyPrimitive: #PRIMITIVE_ID_GET_CHAR>
 	"A primitive that get a character from the stream with id provided as
 	 argument.
 	
@@ -180,6 +207,7 @@ JollyVirtualMachine >> primitiveIsFileOpen [
 
 { #category : #primitives }
 JollyVirtualMachine >> primitiveNop [
+	<jollyPrimitive: #PRIMITIVE_ID_NOPE>
 	" A primitive that does nothing.
 	"
 	self flag: #TODO; halt
@@ -211,6 +239,7 @@ JollyVirtualMachine >> primitiveOpenFile [
 
 { #category : #primitives }
 JollyVirtualMachine >> primitivePutChar [
+	<jollyPrimitive: #PRIMITIVE_ID_PUT_CHAR>
 	" A primitive that put the character provided as argument on the stream
 	 which id is provided as argument.
 
@@ -228,7 +257,16 @@ JollyVirtualMachine >> primitivePutChar [
 ]
 
 { #category : #primitives }
+JollyVirtualMachine >> primitiveSelectorForId: anInteger [
+	^ (Pragma allNamed: #jollyPrimitive: in: self class)
+		detect: [ :pragma |
+			(self class sharedPools anySatisfy: [ :pool |
+				(pool hasClassVarNamed: pragma arguments first) and: [ (pool readClassVariableNamed: pragma arguments first) = anInteger ] ]) ]
+]
+
+{ #category : #primitives }
 JollyVirtualMachine >> primitiveStop [
+	<jollyPrimitive: #PRIMITIVE_ID_STOP_VM>
 	"Stops virtual machine execution.
 	"
 	self flag: #TODO; halt
