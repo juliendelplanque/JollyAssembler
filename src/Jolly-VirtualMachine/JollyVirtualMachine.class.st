@@ -130,6 +130,110 @@ JollyVirtualMachine >> memoryCopy: n bytesFrom: startAddress [
 	^ self memory copyFrom: startAddress + 1 to: startAddress + n
 ]
 
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveCloseFile [
+	"A primitive that close the filestream for id provided as argument.
+	 
+	 Reads the byte pointed by the result pointer, the value stored there is
+	 the id of the filestream.
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveFail [
+	"A primitive that always fails.
+	 Writes the PRIMITIVE_FAILED_RESULT_CODE at PRIMITIVE_RESULT_CODE_ADDRESS.
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveGetChar [
+	"A primitive that get a character from the stream with id provided as
+	 argument.
+	
+	 Reads the byte pointed by the result pointer, the char stored there
+	 is the id of the stream to read from.
+	 Reads the next byte from this stream and stores it in the byte pointed
+	 by the result pointer (thus, the id of the input stream is erased!).
+ 
+	 The special stream with id PRIMITIVE_FILE_INPUT_STREAM_STDIN is stdin
+	 stream.
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveIsFileOpen [
+	"A primitive that determinate if the file stream with id provided as argument
+	 is open or not.
+	 
+	 Reads the byte pointed by the result pointer, the char stored there
+	 is id of the stream to determinate if open or not.
+	 
+	 Stores PRIMITIVE_FILE_IS_CLOSED or PRIMITIVE_FILE_IS_OPEN in the byte pointed
+	 by the result pointer (thus, the id of the stream is erased!).
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveNop [
+	" A primitive that does nothing.
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveOpenFile [
+	"A primitive that open a new filestream for the file path provided as argument
+	 and with the open mode provided as argument.
+	 
+	 Reads the byte pointed by the result pointer, the value stored there is
+	 the open mode of the file.
+	 Currently, this value can be one of the following:
+	 - PRIMITIVE_FILE_MODE_READ
+	 - PRIMITIVE_FILE_MODE_WRITE
+	 - PRIMITIVE_FILE_MODE_APPEND
+	 
+	 Then, reads the null-terminated ASCII string directly consecutive to the open
+	 mode byte in memory.
+	 This string encodes the path of the file to open.
+	 
+	 If the primitive succeed, the id of the stream open is written in the byte
+	 pointed by the result pointer.
+	 This stream id will be needed by primitives that read from or write bytes to
+	 file streams.
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitivePutChar [
+	" A primitive that put the character provided as argument on the stream
+	 which id is provided as argument.
+
+	 Reads the byte pointed by the result pointer, the char stored there
+	 is the value of the character to put on the stream.
+	 Reads the byte pointed by the result pointer incremented of 1, the 
+	 char stored there is the id of the stream to write to.
+
+	 The special stream with id PRIMITIVE_FILE_OUTPUT_STREAM_STDOUT is sdout
+	 stream.
+	 The special stream with id PRIMITIVE_FILE_OUTPUT_STREAM_STDERR is sderr
+	 stream.
+	"
+	self flag: #TODO; halt
+]
+
+{ #category : #primitives }
+JollyVirtualMachine >> primitiveStop [
+	"Stops virtual machine execution.
+	"
+	self flag: #TODO; halt
+]
+
 { #category : #accessing }
 JollyVirtualMachine >> programCounter [
 	^ programCounter
