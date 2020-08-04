@@ -41,11 +41,6 @@ JollyEForthAssembler class >> initialize [
 	PRIMITIVE_FILE_STREAM_STDERR := 2
 ]
 
-{ #category : #accessing }
-JollyEForthAssembler >> addressOfMemoryZone: aSymbol [
-	^ (self memoryLayout reservedMemoryZoneNamed: aSymbol) address
-]
-
 { #category : #macros }
 JollyEForthAssembler >> allocateDataStack [
 	"Return stack grows upward, so increment stack pointer to allocate it."

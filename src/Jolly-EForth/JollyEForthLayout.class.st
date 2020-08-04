@@ -61,10 +61,10 @@ JollyEForthLayout >> initialize [
 JollyEForthLayout >> initializeMemory: memory [
 	super initializeMemory: memory.
 	(self reservedMemoryZoneNamed: #SP) address
-		storeInteger: (self reservedMemoryZoneNamed: #DATA_STACK) address memoryAddress in: memory.
+		storeInteger: (self reservedMemoryZoneNamed: #DATA_STACK) startAddress memoryAddress in: memory.
 		
 	(self reservedMemoryZoneNamed: #RP) address
-		storeInteger: (self reservedMemoryZoneNamed: #RETURN_STACK) address memoryAddress in: memory.
+		storeInteger: (self reservedMemoryZoneNamed: #RETURN_STACK) endAddress memoryAddress in: memory.
 		
 	(self reservedMemoryZoneNamed: #ZERO_WORD) address
 		storeInteger: 0 in: memory

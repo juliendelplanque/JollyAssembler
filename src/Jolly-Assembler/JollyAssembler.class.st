@@ -17,6 +17,11 @@ JollyAssembler >> add: address1 to: address2 into: resultAddress [
 	self lookupBank: (self reservedMemoryZoneNamed: #ADD_PAGE) address from: address1 from: address2 to: resultAddress
 ]
 
+{ #category : #accessing }
+JollyAssembler >> addressOfMemoryZone: aSymbol [
+	^ (self memoryLayout reservedMemoryZoneNamed: aSymbol) address
+]
+
 { #category : #assembling }
 JollyAssembler >> assemble [
 	| lastInstruction |
@@ -329,4 +334,32 @@ JollyAssembler >> nop [
 	"
 	BPNop new
 		generateFor: self
+]
+
+{ #category : #instructions }
+JollyAssembler >> popByteFromDataStack: byteAddress [
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self moveCharFrom: byteAddress toIndirect: (self addressOfMemoryZone: #SP).
+]
+
+{ #category : #instructions }
+JollyAssembler >> popWordFromDataStack: byteAddress [
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self decrementWord: (self addressOfMemoryZone: #SP).
+	self moveWordFrom: byteAddress toIndirect: (self addressOfMemoryZone: #SP).
+]
+
+{ #category : #instructions }
+JollyAssembler >> pushByteOnDataStack: byteAddress [
+	self moveCharFrom: byteAddress toIndirect: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP)
+]
+
+{ #category : #instructions }
+JollyAssembler >> pushWordOnDataStack: wordAddress [
+	self moveWordFrom: wordAddress toIndirect: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP).
+	self incrementWord: (self addressOfMemoryZone: #SP)
 ]
