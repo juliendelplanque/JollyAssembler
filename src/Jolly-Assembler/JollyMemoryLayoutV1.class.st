@@ -41,14 +41,14 @@ JollyMemoryLayoutV1 >> initialize [
 		BPReservedMemoryZone name: #RP startAddress: available_memory_start + 7 + (2*INSTRUCTION_SIZE) + 4 + ADDRESS_SIZE size: ADDRESS_SIZE.
 		BPAddBankBuilder reservedMemoryZoneStartingAt: 16r10000.
 		BPAddZeroFlagBankBuilder reservedMemoryZoneStartingAt: 16r20000.
-		BPAddCarryFlagBankBuilder reservedMemoryZoneStartingAt: 16r50000.
 		BPCmpBankBuilder reservedMemoryZoneStartingAt: 16r30000.
-		BPBitAndBankBuilder reservedMemoryZoneStartingAt: 16r80000.
 		BPIdentityPageBuilder reservedMemoryZoneStartingAt: 16r40000.
 		BPIncrementPageBuilder reservedMemoryZoneStartingAt: 16r40100.
 		BPDecrementPageBuilder reservedMemoryZoneStartingAt: 16r40200.
-		BPReservedMemoryZone name: #DATA_STACK startAddress: 16r40000 size: 16rFFFF.
-		BPReservedMemoryZone name: #RETURN_STACK startAddress: 16r50000 size: 16rFFFF }
+		BPAddCarryFlagBankBuilder reservedMemoryZoneStartingAt: 16r50000.
+		BPReservedMemoryZone name: #DATA_STACK startAddress: 16r60000 size: 16rFFFF.
+		BPReservedMemoryZone name: #RETURN_STACK startAddress: 16r70000 size: 16rFFFF.
+		BPBitAndBankBuilder reservedMemoryZoneStartingAt: 16r80000. }
 ]
 
 { #category : #'initialize memory' }
