@@ -29,3 +29,10 @@ JollyAboutToJump >> jumpAddress [
 JollyAboutToJump >> jumpAddress: anObject [
 	jumpAddress := anObject
 ]
+
+{ #category : #printing }
+JollyAboutToJump >> printOn: aStream [
+	aStream nextPutAll: 'JUMP memory['.
+	aStream nextPutAll: (self jumpAddress printPaddedWith: $0 to: 6 base: 16).
+	aStream nextPut: $]
+]

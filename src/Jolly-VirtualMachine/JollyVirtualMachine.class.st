@@ -12,7 +12,7 @@ Class {
 	#category : #'Jolly-VirtualMachine'
 }
 
-{ #category : #announce }
+{ #category : #announcements }
 JollyVirtualMachine >> announce: anAnnouncement [
 	announcer
 		ifNil: [ ^ self ].
@@ -20,22 +20,22 @@ JollyVirtualMachine >> announce: anAnnouncement [
 	self announcer announce: anAnnouncement
 ]
 
-{ #category : #announce }
+{ #category : #announcements }
 JollyVirtualMachine >> announceAboutMoveByteFrom: fromAddress to: toAddress becauseOfInstructionAtAddress: instructionAddress [
 	self announce: (JollyAboutToMoveByte vm: self address: instructionAddress from: fromAddress to: toAddress)
 ]
 
-{ #category : #announce }
+{ #category : #announcements }
 JollyVirtualMachine >> announceAboutToExecutePrimitiveWithId: primitiveId resultsAddress: resultsAddress becauseOfInstructionAtAddress: instructionAddress [
 	self announce: (JollyAboutToExecutePrimitive vm: self address: instructionAddress primitiveId: primitiveId resultsAddress: resultsAddress)
 ]
 
-{ #category : #announce }
+{ #category : #announcements }
 JollyVirtualMachine >> announceAboutToJumpTo: jumpAddress becauseOfInstructionAtAddress: instructionAddress [
 	self announce: (JollyAboutToJump vm: self address: instructionAddress jump: jumpAddress)
 ]
 
-{ #category : #announce }
+{ #category : #announcements }
 JollyVirtualMachine >> announceAboutToLoadPCBecauseOfInstructionAtAddress: instructionAddress [
 	self announce: (JollyAboutToLoadProgramCounter vm: self address: instructionAddress)
 ]
@@ -285,4 +285,9 @@ JollyVirtualMachine >> programCounter: anObject [
 { #category : #'memory manipulation' }
 JollyVirtualMachine >> resetMemory [
 	self memory: (ByteArray new: MEMORY_SIZE)
+]
+
+{ #category : #announcements }
+JollyVirtualMachine >> when: anAnnouncementClass send: aSelector to: anObject [
+	^ self announcer when: anAnnouncementClass send: aSelector to: anObject
 ]

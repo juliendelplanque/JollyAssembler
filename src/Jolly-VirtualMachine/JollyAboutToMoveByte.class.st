@@ -32,6 +32,15 @@ JollyAboutToMoveByte >> fromAddress: anObject [
 	fromAddress := anObject
 ]
 
+{ #category : #printing }
+JollyAboutToMoveByte >> printOn: aStream [
+	aStream nextPutAll: 'memory['.
+	aStream nextPutAll: (self toAddress printPaddedWith: $0 to: 6 base: 16).
+	aStream nextPutAll: '] <- memory['.
+	aStream nextPutAll: (self fromAddress printPaddedWith: $0 to: 6 base: 16).
+	aStream nextPut: $]
+]
+
 { #category : #accessing }
 JollyAboutToMoveByte >> toAddress [
 	^ toAddress
