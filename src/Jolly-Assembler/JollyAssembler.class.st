@@ -217,6 +217,18 @@ JollyAssembler >> jumpIndirect: address [
 ]
 
 { #category : #instructions }
+JollyAssembler >> loadWordFrom: wordInteger into: intoAddress [
+	"Loads the 3 bytes forming integer wordInteger into
+		toAddress, toAddress+1 and toAddress+2
+	using big endian convention.
+	"
+	self
+		moveCharFrom: ((wordInteger & 16rFF0000) >> 16)  to: (intoAddress forAssembler: self);
+		moveCharFrom: ((wordInteger & 16r00FF00) >> 8) to: (intoAddress forAssembler: self) + 1;
+		moveCharFrom: (wordInteger & 16r0000FF) to: (intoAddress forAssembler: self) + 2
+]
+
+{ #category : #instructions }
 JollyAssembler >> lookupBank: bankStartAddress from: fromAddress1 from: fromAddress2 to: toAddress [
 	JollyLookupBank new
 		bankStartAddress: (bankStartAddress forAssembler: self);
