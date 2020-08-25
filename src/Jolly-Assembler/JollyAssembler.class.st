@@ -229,6 +229,16 @@ JollyAssembler >> loadWordFrom: wordInteger into: intoAddress [
 ]
 
 { #category : #instructions }
+JollyAssembler >> loadWordFromLabel: label into: intoAddress [
+	| labelObject |
+	labelObject := label forAssembler: self.
+	self
+		moveCharFrom: (self reservedMemoryZoneNamed: #IDENTITY_PAGE) + (labelObject asAddressReference offset: 0) to: (intoAddress forAssembler: self);
+		moveCharFrom: (self reservedMemoryZoneNamed: #IDENTITY_PAGE) + (labelObject asAddressReference offset: 1) to: (intoAddress forAssembler: self) + 1;
+		moveCharFrom: (self reservedMemoryZoneNamed: #IDENTITY_PAGE) + (labelObject asAddressReference offset: 2) to: (intoAddress forAssembler: self) + 2
+]
+
+{ #category : #instructions }
 JollyAssembler >> lookupBank: bankStartAddress from: fromAddress1 from: fromAddress2 to: toAddress [
 	JollyLookupBank new
 		bankStartAddress: (bankStartAddress forAssembler: self);
