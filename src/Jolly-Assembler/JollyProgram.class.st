@@ -12,6 +12,11 @@ JollyProgram >> generate [
 	^ assembler
 ]
 
+{ #category : #generating }
+JollyProgram >> generateOn: assembler [
+	self subclassResponsibility
+]
+
 { #category : #writing }
 JollyProgram >> writeOn: fileReference [
 	fileReference binaryWriteStreamDo: [ :s |
