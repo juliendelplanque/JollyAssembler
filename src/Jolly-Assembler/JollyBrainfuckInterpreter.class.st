@@ -7,11 +7,8 @@ Class {
 { #category : #generating }
 JollyBrainfuckInterpreter >> generateOn: assembler [
 	assembler
-	label: #welcome_msg;
-	data: 'Brainfuck interpreter. Enter brainfuck code and terminate by ''q''.' encodeAsASCIINullTerminatedString;
-	
 	label: #bfcode;
-		data: (ByteArray new: 2048);
+		data: (ByteArray new: 4096);
 	label: #bfmemory;
 		data: (ByteArray new: 30000);
 	label: #bfcodepointer;
@@ -22,25 +19,6 @@ JollyBrainfuckInterpreter >> generateOn: assembler [
 		data: #[0];
 	
 	label: #_start;
-		loadWordFromLabel: #welcome_msg into: #F;
-	
-	label: #welcome_loop;
-		moveCharFromIndirect: #F to: #A;
-		cmp: #A with: 0;
-		jumpIfEqual: #end_welcome_loop;
-	
-		moveCharFrom: 1 to: #B; "STDOUT"
-		loadWordFrom: (assembler memoryLayout registerNamed: #A) address memoryAddress
-		into: #PRIMITIVE_RESULT_HIGH;
-		"Primitive id: put char"
-		moveCharFrom: 2 to: #PRIMITIVE_CALL_ID;
-		"Trigger primitive."
-		moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
-		incrementWord: #F;
-		jump: #welcome_loop;
-	
-	label: #end_welcome_loop;
-	
 	loadWordFromLabel: #bfcode into: #PRIMITIVE_RESULT_HIGH;
 	label: #read_bf_code;
 		moveCharFrom: 0 toIndirect: #PRIMITIVE_RESULT_HIGH;
@@ -49,7 +27,10 @@ JollyBrainfuckInterpreter >> generateOn: assembler [
 		"Trigger primitive."
 		moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
 		moveCharFromIndirect: #PRIMITIVE_RESULT_HIGH to: #A;
-		cmp: #A with: $q asciiValue;
+		
+		"Check if EOF was encountered."
+		cmp: #PRIMITIVE_RESULT_CODE with: 1;
+		"If so, start interpreting BF code."
 		jumpIfEqual: #interpret_bf_code;
 	
 		incrementWord: #PRIMITIVE_RESULT_HIGH;
@@ -85,9 +66,13 @@ JollyBrainfuckInterpreter >> generateOn: assembler [
 			
 		cmp: #A with: $] asciiValue;
 		jumpIfEqual: #closeBracket;
+		
+		cmp: #A with: 0;
+		jumpIfEqual: #stop_vm;
 	
-		"Unknown instruction, stop VM."
-		jump: #stop_vm;
+		"Unknown instruction, ignore it."
+		incrementWord: #bfcodepointer;
+		jump: #interpret_loop;
 	
 		label: #incrementBfpointer;
 			incrementWord: #bfpointer;
