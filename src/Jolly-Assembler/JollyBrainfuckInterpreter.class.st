@@ -8,7 +8,7 @@ Class {
 JollyBrainfuckInterpreter >> generateOn: assembler [
 	assembler
 	label: #bfcode;
-		data: (ByteArray new: 4096);
+		data: (ByteArray new: 90000);
 	label: #bfmemory;
 		data: (ByteArray new: 30000);
 	label: #bfcodepointer;
@@ -37,6 +37,7 @@ JollyBrainfuckInterpreter >> generateOn: assembler [
 		jump: #read_bf_code;
 	
 	label: #interpret_bf_code;
+	moveCharFrom: 0 toIndirect: #PRIMITIVE_RESULT_HIGH;
 	
 	loadWordFromLabel: #bfmemory into: #bfpointer;
 	loadWordFromLabel: #bfcode into: #bfcodepointer;
