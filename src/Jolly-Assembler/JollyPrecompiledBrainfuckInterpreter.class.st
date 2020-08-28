@@ -53,9 +53,9 @@ JollyPrecompiledBrainfuckInterpreter >> generateCompileBfCodeOn: assembler [
 		jump: #compile_bf_code;
 		
 		label: #compileIncrementBfpointer;
-			moveCharFrom: #bfcodepointer to: #E;
-			"Check if previous character was also a '+'"
-			cmp: #E with: $+ asciiValue;
+			moveCharFromIndirect: #bfcodepointer to: #E;
+			"Check if previous character was also a '>'"
+			cmp: #E with: $> asciiValue;
 			jumpIfEqual: #incrementParameterOfPlusInstruction;
 			
 			"Here we move the code pointer 3 bytes after current position
@@ -64,14 +64,22 @@ JollyPrecompiledBrainfuckInterpreter >> generateCompileBfCodeOn: assembler [
 			primitiveIncrementWord: #bfcodepointer;
 			primitiveIncrementWord: #bfcodepointer;
 			primitiveIncrementWord: #bfcodepointer;
-			moveCharFrom: $+ asciiValue toIndirect: #bfcodepointer;
+			moveCharFrom: $> asciiValue toIndirect: #bfcodepointer;
 			primitiveIncrementWord: #bfcodepointer;
-			loadWordFrom: 0 into: #bfcodepointer;
+			moveCharFrom: 0 toIndirect: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
+			moveCharFrom: 0 toIndirect: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
+			moveCharFrom: 1 toIndirect: #bfcodepointer;
 			primitiveDecrementWord: #bfcodepointer;
+			primitiveDecrementWord: #bfcodepointer;
+			primitiveDecrementWord: #bfcodepointer;
+			primitiveDecrementWord: #bfcodepointer;
+			label: #debug1;
 			jump: #compile_bf_code;
 			
 			label: #incrementParameterOfPlusInstruction;
-			"Here, as previous instruction was already a '+', we just
+			"Here, as previous instruction was already a '>', we just
 			 increment the parameter so it has the desired effect.
 			"
 			primitiveIncrementWord: #bfcodepointer;
@@ -79,6 +87,7 @@ JollyPrecompiledBrainfuckInterpreter >> generateCompileBfCodeOn: assembler [
 			primitiveIncrementWord: #F;
 			moveWordFrom: #F toIndirect: #bfcodepointer;
 			primitiveDecrementWord: #bfcodepointer;
+			label: #debug2;
 			jump: #compile_bf_code;
 			
 		label: #compileDecrementBfpointer;

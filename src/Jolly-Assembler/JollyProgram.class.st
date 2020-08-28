@@ -19,10 +19,19 @@ JollyProgram >> generateOn: assembler [
 
 { #category : #writing }
 JollyProgram >> writeOn: fileReference [
+	|assembledCode|
+	assembledCode := self generate assemble.
 	fileReference binaryWriteStreamDo: [ :s |
-		|assembledCode memory|
-		assembledCode := self generate assemble.
+		|memory|
 		memory := ByteArray new: assembledCode instructions last endAddress memoryAddress.
 		assembledCode serializeOn: memory.
-		s nextPutAll: memory ]
+		s nextPutAll: memory ].
+	(fileReference , 'meta') ensureDelete;
+		writeStreamDo: [ :s |
+			assembledCode labels do: [ :label |
+				s nextPutAll: label label.
+				s nextPut: $,.
+				s nextPutAll: '0x'.
+				s nextPutAll: label address hex.
+				s nextPutAll: Smalltalk os lineEnding ]  ]
 ]
