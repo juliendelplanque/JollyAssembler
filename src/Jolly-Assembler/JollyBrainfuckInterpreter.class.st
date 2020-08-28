@@ -5,6 +5,28 @@ Class {
 }
 
 { #category : #generating }
+JollyBrainfuckInterpreter >> generateCompileBfCodeOn: assembler [
+	assembler
+	label: #_start;
+	loadWordFromLabel: #bfcode into: #PRIMITIVE_RESULT_HIGH;
+	label: #compile_bf_code;
+		moveCharFrom: 0 toIndirect: #PRIMITIVE_RESULT_HIGH;
+		"Primitive id: get char"
+		moveCharFrom: 3 to: #PRIMITIVE_CALL_ID;
+		"Trigger primitive."
+		moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
+		moveCharFromIndirect: #PRIMITIVE_RESULT_HIGH to: #A;
+		
+		"Check if EOF was encountered."
+		cmp: #PRIMITIVE_RESULT_CODE with: 1;
+		"If so, start interpreting BF code."
+		jumpIfEqual: #interpret_bf_code;
+	
+		incrementWord: #PRIMITIVE_RESULT_HIGH;
+		jump: #compile_bf_code.
+]
+
+{ #category : #generating }
 JollyBrainfuckInterpreter >> generateDataZonesOn: assembler [
 	assembler
 		label: #bfcode;
@@ -171,33 +193,11 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 { #category : #generating }
 JollyBrainfuckInterpreter >> generateOn: assembler [
 	self generateDataZonesOn: assembler.
-	self generateReadBfCodeOn: assembler.
+	self generateCompileBfCodeOn: assembler.
 	
 	self generateInterpretBfCodeOn: assembler.
 	
 	self generateStopVMOn: assembler
-]
-
-{ #category : #generating }
-JollyBrainfuckInterpreter >> generateReadBfCodeOn: assembler [
-	assembler
-	label: #_start;
-	loadWordFromLabel: #bfcode into: #PRIMITIVE_RESULT_HIGH;
-	label: #read_bf_code;
-		moveCharFrom: 0 toIndirect: #PRIMITIVE_RESULT_HIGH;
-		"Primitive id: get char"
-		moveCharFrom: 3 to: #PRIMITIVE_CALL_ID;
-		"Trigger primitive."
-		moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
-		moveCharFromIndirect: #PRIMITIVE_RESULT_HIGH to: #A;
-		
-		"Check if EOF was encountered."
-		cmp: #PRIMITIVE_RESULT_CODE with: 1;
-		"If so, start interpreting BF code."
-		jumpIfEqual: #interpret_bf_code;
-	
-		incrementWord: #PRIMITIVE_RESULT_HIGH;
-		jump: #read_bf_code.
 ]
 
 { #category : #generating }
