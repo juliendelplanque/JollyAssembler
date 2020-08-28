@@ -52,7 +52,7 @@ JollyBrainfuckInterpreterIntensivePrimitiveUsage >> generateInterpretBfCodeOn: a
 			jump: #interpret_loop;
 		
 		label: #decrementBfpointer;
-			decrementWord: #bfpointer;
+			primitiveDecrementWord: #bfpointer;
 			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 		
@@ -135,7 +135,7 @@ JollyBrainfuckInterpreterIntensivePrimitiveUsage >> generateInterpretBfCodeOn: a
 			label: #closeBracket_nonzero;
 				"Here we need to search for the matching ["
 				"Warning, this first version does not work with nested []"
-				decrementWord: #bfcodepointer;
+				primitiveDecrementWord: #bfcodepointer;
 				moveCharFromIndirect: #bfcodepointer to: #A;
 				cmp: #A with: $] asciiValue;
 				jumpIfNotEqual: #closeBracket_nonzero_not_close_bracket;
