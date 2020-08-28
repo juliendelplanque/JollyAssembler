@@ -373,6 +373,16 @@ JollyAssembler >> popWordFromDataStack: byteAddress [
 ]
 
 { #category : #instructions }
+JollyAssembler >> primitiveIncrementWord: address [
+	self
+		loadWordFromLabel: address into: #PRIMITIVE_RESULT_HIGH;
+		"Primitive id: increment address"
+		moveCharFrom: 14 to: #PRIMITIVE_CALL_ID;
+		"Trigger primitive."
+		moveCharFrom: 1 to: #PRIMITIVE_IS_READY
+]
+
+{ #category : #instructions }
 JollyAssembler >> pushByteOnDataStack: byteAddress [
 	self moveCharFrom: byteAddress toIndirect: (self addressOfMemoryZone: #SP).
 	self incrementWord: (self addressOfMemoryZone: #SP)

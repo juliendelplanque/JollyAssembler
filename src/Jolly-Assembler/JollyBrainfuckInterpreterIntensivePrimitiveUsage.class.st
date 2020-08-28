@@ -1,26 +1,11 @@
 Class {
-	#name : #JollyBrainfuckInterpreter,
-	#superclass : #JollyProgram,
+	#name : #JollyBrainfuckInterpreterIntensivePrimitiveUsage,
+	#superclass : #JollyBrainfuckInterpreter,
 	#category : #'Jolly-Assembler'
 }
 
 { #category : #generating }
-JollyBrainfuckInterpreter >> generateDataZonesOn: assembler [
-	assembler
-		label: #bfcode;
-			data: (ByteArray new: 90000);
-		label: #bfmemory;
-			data: (ByteArray new: 30000);
-		label: #bfcodepointer;
-			data: #[0 0 0];
-		label: #bfpointer;
-			data: #[0 0 0];
-		label: #brackets_count;
-			data: #[0]
-]
-
-{ #category : #generating }
-JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
+JollyBrainfuckInterpreterIntensivePrimitiveUsage >> generateInterpretBfCodeOn: assembler [
 	assembler
 	label: #interpret_bf_code;
 	moveCharFrom: 0 toIndirect: #PRIMITIVE_RESULT_HIGH;
@@ -58,31 +43,31 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 		jumpIfEqual: #stop_vm;
 	
 		"Unknown instruction, ignore it."
-		incrementWord: #bfcodepointer;
+		primitiveIncrementWord: #bfcodepointer;
 		jump: #interpret_loop;
 	
 		label: #incrementBfpointer;
-			incrementWord: #bfpointer;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfpointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 		
 		label: #decrementBfpointer;
 			decrementWord: #bfpointer;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 		
 		label: #incrementBytePointed;
 			moveCharFromIndirect: #bfpointer to: #F;
 			increment: #F;
 			moveCharFrom: #F toIndirect: #bfpointer;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 		
 		label: #decrementBytePointed;
 			moveCharFromIndirect: #bfpointer to: #F;
 			decrement: #F;
 			moveCharFrom: #F toIndirect: #bfpointer;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 		
 		label: #outputByte;
@@ -94,7 +79,7 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 			moveCharFrom: 2 to: #PRIMITIVE_CALL_ID;
 			"Trigger primitive."
 			moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 		
 		label: #inputByte;
@@ -107,7 +92,7 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 			"Trigger primitive."
 			moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
 			moveCharFrom: #A toIndirect: #bfpointer;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 			
 		label: #openBracket;
@@ -115,13 +100,13 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 			moveCharFromIndirect: #bfpointer to: #A;
 			cmp: #A with: 0;
 			jumpIfEqual: #openBracket_zero;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 			
 			label: #openBracket_zero;
 				"Here we need to search for the matching ]"
 				"Warning, this first version does not work with nested []"
-				incrementWord: #bfcodepointer;
+				primitiveIncrementWord: #bfcodepointer;
 				moveCharFromIndirect: #bfcodepointer to: #A;
 				cmp: #A with: $[ asciiValue;
 				jumpIfNotEqual: #openBracket_zero_not_open_bracket;
@@ -136,7 +121,7 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 				cmp: #brackets_count with: 0;
 				jumpIfNotEqual: #openBracket_zero;
 				"Here, we found the matching ], thus we increment the code pointer and continue interpreting."
-				incrementWord: #bfcodepointer;
+				primitiveIncrementWord: #bfcodepointer;
 				jump: #interpret_loop;
 		
 		label: #closeBracket;
@@ -144,7 +129,7 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 			moveCharFromIndirect: #bfpointer to: #A;
 			cmp: #A with: 0;
 			jumpIfNotEqual: #closeBracket_nonzero;
-			incrementWord: #bfcodepointer;
+			primitiveIncrementWord: #bfcodepointer;
 			jump: #interpret_loop;
 			
 			label: #closeBracket_nonzero;
@@ -166,46 +151,4 @@ JollyBrainfuckInterpreter >> generateInterpretBfCodeOn: assembler [
 				cmp: #brackets_count with: 0;
 				jumpIfNotEqual: #closeBracket_nonzero;
 				jump: #interpret_loop.
-]
-
-{ #category : #generating }
-JollyBrainfuckInterpreter >> generateOn: assembler [
-	self generateDataZonesOn: assembler.
-	self generateReadBfCodeOn: assembler.
-	
-	self generateInterpretBfCodeOn: assembler.
-	
-	self generateStopVMOn: assembler
-]
-
-{ #category : #generating }
-JollyBrainfuckInterpreter >> generateReadBfCodeOn: assembler [
-	assembler
-	label: #_start;
-	loadWordFromLabel: #bfcode into: #PRIMITIVE_RESULT_HIGH;
-	label: #read_bf_code;
-		moveCharFrom: 0 toIndirect: #PRIMITIVE_RESULT_HIGH;
-		"Primitive id: get char"
-		moveCharFrom: 3 to: #PRIMITIVE_CALL_ID;
-		"Trigger primitive."
-		moveCharFrom: 1 to: #PRIMITIVE_IS_READY;
-		moveCharFromIndirect: #PRIMITIVE_RESULT_HIGH to: #A;
-		
-		"Check if EOF was encountered."
-		cmp: #PRIMITIVE_RESULT_CODE with: 1;
-		"If so, start interpreting BF code."
-		jumpIfEqual: #interpret_bf_code;
-	
-		incrementWord: #PRIMITIVE_RESULT_HIGH;
-		jump: #read_bf_code.
-]
-
-{ #category : #generating }
-JollyBrainfuckInterpreter >> generateStopVMOn: assembler [
-	assembler
-	label: #stop_vm;
-		"Stop the VM."
-		moveCharFrom: 4 to: #PRIMITIVE_CALL_ID;
-		"Trigger primitive."
-		moveCharFrom: 1 to: #PRIMITIVE_IS_READY.
 ]
