@@ -74,7 +74,6 @@ JollyPrecompiledBrainfuckInterpreter >> generateCompileBfCodeOn: assembler [
 			primitiveDecrementWord: #bfcodepointer;
 			primitiveDecrementWord: #bfcodepointer;
 			primitiveDecrementWord: #bfcodepointer;
-			primitiveDecrementWord: #bfcodepointer;
 			label: #debug1;
 			jump: #compile_bf_code;
 			
